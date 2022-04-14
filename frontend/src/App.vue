@@ -15,14 +15,18 @@
       </div>
 
       <v-spacer></v-spacer>
+
       <dark-mode-toggle />
-      <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-        text
-      >
-        <span class="mr-2">Latest Release</span>
-        <v-icon>mdi-open-in-new</v-icon>
+
+      <v-btn text>
+        <v-icon>mdi-account</v-icon>
+      </v-btn>
+      <v-btn text>
+        <v-icon>mdi-magnify</v-icon>
+      </v-btn>
+      <v-btn text>
+        <v-icon>mdi-cart</v-icon>
+        <span>({{ cartItemCount }})</span>
       </v-btn>
     </v-app-bar>
 
@@ -38,12 +42,15 @@ import DarkModeToggle from "./components/style/DarkModeToggle";
 export default {
   name: "App",
   components: { DarkModeToggle },
-  data: () => ({
-    isDarkModeEnabled: true,
-  }),
-  methods: {
-    onSwitched: function (isSwitched) {
-      console.log("dark mode is enabled :", isSwitched);
+  data() {
+    return {};
+  },
+  computed: {
+    cartItemCount: {
+      get() {
+        if (this.$cookies.get("cartItemCount") == null) return "0";
+        else return this.$cookies.get("cartItemCount");
+      },
     },
   },
 };

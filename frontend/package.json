@@ -11,6 +11,8 @@
   "dependencies": {
     "core-js": "^3.8.3",
     "vue": "^2.6.14",
+    "vue-cookies": "^1.8.0",
+    "vue-cookies-reactive": "^2.1.1",
     "vue-dark-mode-switch": "^1.1.0",
     "vue-router": "^3.5.1",
     "vuetify": "^2.6.0"

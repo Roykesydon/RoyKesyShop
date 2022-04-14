@@ -13,21 +13,19 @@ export default {
   components: { DarkModeSwitch },
 
   data() {
-    return {
-      // darkMode: false,
-    };
+    return {};
   },
   computed: {
     darkMode: {
       get() {
-        return localStorage.getItem("DarkMode") === "true";
+        return this.$cookies.get("DarkMode") == true;
       },
       set() {
-        if (localStorage.getItem("DarkMode") === "true") {
-          localStorage.setItem("DarkMode", false);
+        if (this.$cookies.get("DarkMode") == true) {
+          this.$cookies.set("DarkMode", false);
           this.$vuetify.theme.dark = false;
         } else {
-          localStorage.setItem("DarkMode", true);
+          this.$cookies.set("DarkMode", true);
           this.$vuetify.theme.dark = true;
         }
       },
@@ -35,7 +33,7 @@ export default {
   },
 
   mounted() {
-    if (localStorage.getItem("DarkMode") === "true") {
+    if (this.$cookies.get("DarkMode") == true) {
       this.$vuetify.theme.dark = true;
     } else {
       this.$vuetify.theme.dark = false;

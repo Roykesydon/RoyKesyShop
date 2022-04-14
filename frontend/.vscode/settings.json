@@ -1,0 +1,6 @@
+{
+  "files.autoSave": "onWindowChange", // 切換視窗自動存檔
+  "editor.formatOnSave": true, // 存檔時自動 format
+  "vetur.validation.template": false, // 關閉 vetur 驗證
+  "editor.defaultFormatter": "esbenp.prettier-vscode" // 預設 format 使用 prettier
+}

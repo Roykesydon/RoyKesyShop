@@ -1,49 +1,59 @@
 <template>
   <v-app>
-    <v-app-bar app color="primary" dark>
-      <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-          transition="scale-transition"
-          width="40"
-        />
+    <v-app-bar app :class="barColorMode" dark>
+      <a>
+        <div class="d-flex align-center">
+          <v-img
+            alt="Vuetify Logo"
+            class="shrink mr-2"
+            contain
+            src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
+            transition="scale-transition"
+            width="40"
+          />
 
-        <h2>RoyKesyShop</h2>
-      </div>
+          <span class="font-weight-thin text-h5 white--text">RoyKesyShop</span>
+        </div>
+      </a>
 
       <v-spacer></v-spacer>
 
-      <dark-mode-toggle />
+      <dark-mode-toggle class="mr-2" />
 
-      <v-btn text>
-        <v-icon>mdi-account</v-icon>
-      </v-btn>
-      <v-btn text>
+      <v-dialog v-model="signInUpInterface" persistent max-width="30vw">
+        <template #activator="{ on, attrs }">
+          <v-btn text class="mx-1" v-bind="attrs" v-on="on">
+            <v-icon>mdi-account</v-icon>
+          </v-btn>
+        </template>
+        <sign-in-up-interface
+          @closeSignInUpInterface="signInUpInterface = false"
+        />
+      </v-dialog>
+      <v-btn text class="mx-1">
         <v-icon>mdi-magnify</v-icon>
       </v-btn>
-      <v-btn text>
+      <v-btn text class="mx-1">
         <v-icon>mdi-cart</v-icon>
         <span>({{ cartItemCount }})</span>
       </v-btn>
     </v-app-bar>
 
-    <v-main>
+    <v-main :class="backgroundColorMode">
       <router-view />
     </v-main>
   </v-app>
 </template>
 
 <script>
-import DarkModeToggle from "./components/style/DarkModeToggle";
+import DarkModeToggle from "@/components/style/DarkModeToggle";
+import SignInUpInterface from "@/components/combinedForm/SignInUpInterface.vue";
 
 export default {
   name: "App",
-  components: { DarkModeToggle },
+  components: { DarkModeToggle, SignInUpInterface },
   data() {
-    return {};
+    return { signInUpInterface: false };
   },
   computed: {
     cartItemCount: {
@@ -52,6 +62,32 @@ export default {
         else return this.$cookies.get("cartItemCount");
       },
     },
+    barColorMode: {
+      get() {
+        if (this.$cookies.get("DarkMode") == true) {
+          return "dark-bar";
+        } else {
+          return "light-bar";
+        }
+      },
+    },
+    backgroundColorMode: {
+      get() {
+        if (this.$cookies.get("DarkMode") == true) {
+          return "dark-background";
+        } else {
+          return "light-background";
+        }
+      },
+    },
   },
 };
 </script>
+
+<style scoped>
+@import "@/assets/styles/app-bar/light-bar.css";
+@import "@/assets/styles/app-bar/dark-bar.css";
+
+@import "@/assets/styles/background/light-background.css";
+@import "@/assets/styles/background/dark-background.css";
+</style>

@@ -5,37 +5,43 @@
         Login
       </div>
       <div class="my-auto pa-10">
-        <v-row>
-          <v-col cols="12">
-            <v-text-field
-              v-model="inputEmail"
-              label="Email"
-              :rules="[rules.required, rules.emailFormat, rules.emailLength]"
-            ></v-text-field>
-          </v-col>
-          <v-col cols="12">
-            <v-text-field
-              v-model="inputPassword"
-              label="Password"
-              :type="showPassword ? 'text' : 'password'"
-              :rules="[rules.required, rules.password]"
-              :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-              @click:append="showPassword = !showPassword"
-            ></v-text-field>
-          </v-col>
-        </v-row>
-        <div class="d-flex justify-end">
-          <v-spacer></v-spacer>
-          <v-btn color="primary" text @click="$emit('closeSignInUpInterface')">
-            Close
-          </v-btn>
-          <v-btn color="primary" text @click="login()"> Login </v-btn>
-        </div>
-        <div class="d-flex justify-end my-5">
-          <v-btn color="secondary" text @click="$emit('wantToSignUp')">
-            don't have acoount?
-          </v-btn>
-        </div>
+        <v-form ref="signInForm" v-model="signInValid" lazy-validation>
+          <v-row>
+            <v-col cols="12">
+              <v-text-field
+                v-model="inputEmail"
+                label="Email"
+                :rules="[rules.required, rules.emailFormat, rules.emailLength]"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12">
+              <v-text-field
+                v-model="inputPassword"
+                label="Password"
+                :type="showPassword ? 'text' : 'password'"
+                :rules="[rules.required, rules.password]"
+                :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                @click:append="showPassword = !showPassword"
+              ></v-text-field>
+            </v-col>
+          </v-row>
+          <div class="d-flex justify-end">
+            <v-spacer></v-spacer>
+            <v-btn
+              color="primary"
+              text
+              @click="$emit('closeSignInUpInterface')"
+            >
+              Close
+            </v-btn>
+            <v-btn color="primary" text @click="login()"> Login </v-btn>
+          </div>
+          <div class="d-flex justify-end my-5">
+            <v-btn color="secondary" text @click="$emit('wantToSignUp')">
+              don't have acoount?
+            </v-btn>
+          </div>
+        </v-form>
       </div>
     </div>
   </v-card>
@@ -43,7 +49,7 @@
 
 <script>
 import { rules } from "@/jsLibrary/rules.js";
-import { loginErrorMessage } from "@/assets/errorMessage/English/user/loginError.js";
+import { apiAddress } from "@/config.js";
 
 export default {
   name: "LoginForm",
@@ -53,24 +59,45 @@ export default {
     inputPassword: "",
     showPassword: false,
 
+    signInValid: true,
+
+    isLoading: false,
+
     rules: rules,
   }),
   methods: {
-    requestLogin: function () {
-      return 1;
+    requestLogin: async function () {
+      await this.$axios
+        .post(apiAddress + "/user/login", {
+          email: this.inputEmail,
+          password: this.inputPassword,
+        })
+        .then((response) => {
+          if (response.data.success == 1) {
+            this.$cookies.set("token", response.data.token);
+            this.$toast.success("Login Success!", {
+              position: "top-center",
+              timeout: 2000,
+            });
+          } else {
+            this.$toast.error(response.data.msg, {
+              position: "top-center",
+              timeout: 2000,
+            });
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     },
-    login: function () {
-      console.log(this.inputEmail, this.inputPassword);
-      let errorMessageCode = this.requestLogin();
-      if (errorMessageCode == 0) {
-        this.$toast.success("Login Success", {
-          position: "top",
-        });
-      } else {
-        this.$toast.error(loginErrorMessage[errorMessageCode], {
-          position: "top",
-        });
+    login: async function () {
+      if (this.$refs.signInForm.validate() == false) {
+        return;
       }
+
+      this.isLoading = true;
+      await this.requestLogin();
+      this.isLoading = false;
     },
   },
 };

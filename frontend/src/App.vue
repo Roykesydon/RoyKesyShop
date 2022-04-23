@@ -20,7 +20,12 @@
 
       <dark-mode-toggle class="mr-2" />
 
-      <v-dialog v-model="signInUpInterface" persistent max-width="30vw">
+      <v-dialog
+        v-if="!isLogin"
+        v-model="signInUpInterface"
+        persistent
+        max-width="30vw"
+      >
         <template #activator="{ on, attrs }">
           <v-btn text class="mx-1" v-bind="attrs" v-on="on">
             <v-icon>mdi-account</v-icon>
@@ -30,12 +35,18 @@
           @closeSignInUpInterface="signInUpInterface = false"
         />
       </v-dialog>
+      <v-btn v-if="isLogin" text class="mx-1">
+        <v-icon>mdi-account</v-icon>
+      </v-btn>
       <v-btn text class="mx-1">
         <v-icon>mdi-magnify</v-icon>
       </v-btn>
       <v-btn text class="mx-1">
         <v-icon>mdi-cart</v-icon>
         <span>({{ cartItemCount }})</span>
+      </v-btn>
+      <v-btn v-if="isLogin" @click="signOut" text class="mx-1">
+        <v-icon>mdi-logout</v-icon>
       </v-btn>
     </v-app-bar>
 
@@ -79,6 +90,21 @@ export default {
           return "light-background";
         }
       },
+    },
+    isLogin: {
+      get() {
+        if (this.$cookies.get("token") == null) return false;
+        else return true;
+      },
+    },
+  },
+  methods: {
+    signOut: function () {
+      this.$cookies.remove("token");
+      this.$toast.info("Successfully logged out", {
+        position: "top-center",
+        timeout: 2000,
+      });
     },
   },
 };

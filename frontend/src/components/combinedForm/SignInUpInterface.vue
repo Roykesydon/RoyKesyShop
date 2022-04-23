@@ -9,7 +9,6 @@
       </div>
       <div v-else>
         <register-form
-          style="min-height: 55vh"
           @closeSignInUpInterface="$emit('closeSignInUpInterface')"
           @wantToSignIn="wantLogin = true"
         />

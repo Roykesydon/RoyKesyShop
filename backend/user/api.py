@@ -1,13 +1,11 @@
 import base64
 import hashlib
 import os
-import re
 
-import jwt
-import pymysql
 from flask import Blueprint, request
 
 from utils.config import get_config
+from utils.jwt_handle import make_jwt_token
 from utils.sql_executor import SQLExecutor
 from utils.validator import Validator
 
@@ -21,8 +19,10 @@ def index():
 
 @user.route("/register", methods=["POST"])
 def register():
-    email = request.form.get("email")
-    password = request.form.get("password")
+    data = request.get_json()
+
+    email = data["email"]
+    password = data["password"]
 
     returnJson = {"success": 0, "msg": "", "token": ""}
 
@@ -46,12 +46,11 @@ def register():
     )
     if successFlag:
         if result != None:
-            returnJson["msg"] = "email already been used"
+            returnJson["msg"] = "Email already been used"
             return returnJson
     else:
         returnJson["msg"] = "server error"
         return returnJson
-
 
     """
     Insert user information into database
@@ -59,8 +58,9 @@ def register():
     salt = os.urandom(16)
     salt = base64.b64encode(salt)
 
-    hashPassword = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 100000).hex()
-
+    hashPassword = hashlib.pbkdf2_hmac(
+        "sha256", password.encode("utf-8"), salt, 100000
+    ).hex()
 
     insertString = "INSERT INTO Users(name, email, salt, password) values (%(Name)s, %(email)s, %(salt)s, %(password)s)"
     successFlag = sqlExecutor.execute_transaction(
@@ -80,19 +80,17 @@ def register():
         returnJson["msg"] = "server error"
         return returnJson
 
-    config = get_config()
-
     returnJson["success"] = 1
-    returnJson["token"] = jwt.encode(
-        {"email": email}, config["jwt_secret_key"], algorithm="HS256"
-    )
+    returnJson["token"] = make_jwt_token(email)
+
     return returnJson
 
 
 @user.route("/login", methods=["POST"])
 def login():
-    email = request.form.get("email")
-    password = request.form.get("password")
+    data = request.get_json()
+    email = data["email"]
+    password = data["password"]
 
     returnJson = {"success": 0, "msg": "", "token": ""}
 
@@ -112,28 +110,28 @@ def login():
     Check whether email exists in database and get salt and password 
     """
     successFlag, result = sqlExecutor.query_sql(
-        "SELECT salt, password from Users WHERE email = %(email)s", {"email": email}, fetchOne=True
+        "SELECT salt, password from Users WHERE email = %(email)s",
+        {"email": email},
+        fetchOne=True,
     )
     if successFlag:
         if result == None:
-            returnJson["msg"] = "email doesn't exist"
+            returnJson["msg"] = "Email doesn't exist"
             return returnJson
     else:
-        returnJson["msg"] = "server error"
+        returnJson["msg"] = "Server error"
         return returnJson
 
     salt, passwordInDatabase = result
-    hashPassword = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode(), 100000).hex()
+    hashPassword = hashlib.pbkdf2_hmac(
+        "sha256", password.encode("utf-8"), salt.encode(), 100000
+    ).hex()
 
     if hashPassword != passwordInDatabase:
-        returnJson["msg"] = "password is wrong"
+        returnJson["msg"] = "Password is wrong"
         return returnJson
-        
-
-    config = get_config()
 
     returnJson["success"] = 1
-    returnJson["token"] = jwt.encode(
-        {"email": email}, config["jwt_secret_key"], algorithm="HS256"
-    )
+    returnJson["token"] = make_jwt_token(email)
+
     return returnJson

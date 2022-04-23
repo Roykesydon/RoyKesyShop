@@ -1,0 +1,7 @@
+db:
+    host : localhost
+    user : input_user_name
+    password : input_user_password
+    database : input_database_name
+    
+jwt_secret_key: input_jwt_secret_key

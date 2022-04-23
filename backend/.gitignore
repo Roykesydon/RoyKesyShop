@@ -3,3 +3,5 @@ mysql/
 
 __pycache__/
 *.py[cod]
+
+config.yml

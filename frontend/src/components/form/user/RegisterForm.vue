@@ -4,7 +4,6 @@
       <loading
         :active.sync="isLoading"
         :can-cancel="false"
-        :on-cancel="() => {}"
         :is-full-page="false"
         :color="$vuetify.theme.currentTheme.primary"
         :background-color="$vuetify.theme.currentTheme.customBackground"

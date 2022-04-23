@@ -45,7 +45,7 @@
         <v-icon>mdi-cart</v-icon>
         <span>({{ cartItemCount }})</span>
       </v-btn>
-      <v-btn v-if="isLogin" @click="signOut" text class="mx-1">
+      <v-btn v-if="isLogin" text class="mx-1" @click="signOut">
         <v-icon>mdi-logout</v-icon>
       </v-btn>
     </v-app-bar>

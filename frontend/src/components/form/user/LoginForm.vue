@@ -1,6 +1,13 @@
 <template>
   <v-card class="pa-10">
     <div class="ma-5">
+      <loading
+        :active.sync="isLoading"
+        :can-cancel="false"
+        :is-full-page="false"
+        :color="$vuetify.theme.currentTheme.primary"
+        :background-color="$vuetify.theme.currentTheme.customBackground"
+      ></loading>
       <div class="text-h2 font-weight-thin text-center primary--text dark">
         Login
       </div>
@@ -51,8 +58,14 @@
 import { rules } from "@/jsLibrary/rules.js";
 import { apiAddress } from "@/config.js";
 
+import Loading from "vue-loading-overlay";
+import "vue-loading-overlay/dist/vue-loading.css";
+
 export default {
   name: "LoginForm",
+  components: {
+    Loading,
+  },
   data: () => ({
     inputEmail: "",
 

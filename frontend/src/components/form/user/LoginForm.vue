@@ -88,6 +88,10 @@ export default {
         .then((response) => {
           if (response.data.success == 1) {
             this.$cookies.set("token", response.data.token);
+            if (response.data.isAdmin) {
+              this.$cookies.set("token", response.data.token);
+            }
+            this.$cookies.set("isAdmin", response.data.isAdmin);
             this.$toast.success("Login Success!", {
               position: "top-center",
               timeout: 2000,

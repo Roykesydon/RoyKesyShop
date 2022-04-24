@@ -1,10 +1,11 @@
 <template>
   <div>
     <div
-      class="ml-15 pa-7"
+      class="pa-7"
       style="
         position: absolute;
         top: 25%;
+        left: 5%;
         float: left;
         border-width: thin;
         border: solid;
@@ -24,7 +25,22 @@
 export default {
   name: "HomeView",
 
-  data: () => ({}),
+  data: () => ({
+    items: [
+      {
+        src: "https://cdn.vuetifyjs.com/images/carousel/squirrel.jpg",
+      },
+      {
+        src: "https://cdn.vuetifyjs.com/images/carousel/sky.jpg",
+      },
+      {
+        src: "https://cdn.vuetifyjs.com/images/carousel/bird.jpg",
+      },
+      {
+        src: "https://cdn.vuetifyjs.com/images/carousel/planet.jpg",
+      },
+    ],
+  }),
 
   mounted() {},
 };

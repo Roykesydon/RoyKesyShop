@@ -1,10 +1,18 @@
 .light-background {
-  background: linear-gradient(128deg, #e6e6e6, #585858);
+  background-image: radial-gradient(
+    circle,
+    #e5e5e5,
+    #c9c9c9,
+    #adadad,
+    #929292,
+    #787878
+  );
+  /* background: linear-gradient(128deg, #e6e6e6, #585858);
   background-size: 400% 400%;
 
   -webkit-animation: AnimationName 0s ease infinite;
   -moz-animation: AnimationName 0s ease infinite;
-  animation: AnimationName 0s ease infinite;
+  animation: AnimationName 0s ease infinite; */
 }
 
 @-webkit-keyframes AnimationName {

@@ -7,7 +7,10 @@ import Toast from "vue-toastification";
 import "vue-toastification/dist/index.css";
 
 Vue.use(Vuetify);
+
 Vue.use(VueCookies);
+Vue.$cookies.config("3d");
+
 Vue.use(Toast, {
   transition: "Vue-Toastification__bounce",
   maxToasts: 20,

@@ -5,10 +5,10 @@ import pymysql
 from .config import get_config
 
 
-class SQLExecutor:
-    def _get_connection(self):
+class TransactionExecutor:
+    def __enter__(self):
         config = get_config()
-        connection = pymysql.connect(
+        self.connection = pymysql.connect(
             host=str(config["db"]["host"]),
             user=str(config["db"]["user"]),
             password=str(config["db"]["password"]),
@@ -16,39 +16,34 @@ class SQLExecutor:
             charset="utf8",
             autocommit=False,
         )
-        return connection
+        return self
 
-    def execute_transaction(self, sqlQuerysAndParams):
+    def __exit__(self, type, value, traceback):
+        if self.connection is not None:
+            self.connection.close()
+
+    def execute_sql(self, sqlQuery, params):
         successFlag = True
         try:
-            connection = self._get_connection()
-
-            with connection.cursor() as cursor:
-                for sqlQuery, params in sqlQuerysAndParams:
-                    cursor.execute(sqlQuery, params)
-
-            connection.commit()
+            with self.connection.cursor() as cursor:
+                cursor.execute(sqlQuery, params)
 
         except Exception as error:
-            print("Transaction failed: {}".format(error))
+            print("Execute sql failed: {}".format(error))
             successFlag = False
-            connection.rollback()
+            self.connection.rollback()
 
         finally:
-            connection.close()
             return successFlag
 
     def query_sql(self, sqlQuery, params, fetchOne=False):
         successFlag = True
-        connection = None
         returnData = None
 
         try:
-            connection = self._get_connection()
-
-            with connection.cursor() as cursor:
+            with self.connection.cursor() as cursor:
                 cursor.execute(sqlQuery, params)
-                connection.commit()
+
                 if fetchOne:
                     returnData = cursor.fetchone()
                 else:
@@ -56,11 +51,18 @@ class SQLExecutor:
 
         except Exception as error:
             print("Query failed: {}".format(error))
-            connection.rollback()
+            self.connection.rollback()
             successFlag = False
 
-        finally:
-            if connection is not None:
-                connection.close()
-
         return successFlag, returnData
+
+    def commit(self):
+        successFlag = True
+        try:
+            self.connection.commit()
+        except Exception as error:
+            print("Commit failed: {}".format(error))
+            self.connection.rollback()
+            successFlag = False
+        finally:
+            return successFlag

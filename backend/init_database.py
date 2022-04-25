@@ -12,11 +12,11 @@ connection = pymysql.connect(
     charset="utf8",
 )
 
-
 cursor = connection.cursor()
+
+
 cursor.execute("DROP TABLE IF EXISTS Users;")
 connection.commit()
-
 
 cursor.execute(
     "CREATE TABLE IF NOT EXISTS Users( \
@@ -28,6 +28,24 @@ cursor.execute(
     PRIMARY KEY (email) );"
 )
 connection.commit()
+
+
+cursor.execute("DROP TABLE IF EXISTS Clothing;")
+connection.commit()
+
+cursor.execute(
+    "CREATE TABLE IF NOT EXISTS Clothing( \
+    _ID int(8) NOT NULL AUTO_INCREMENT, \
+    title varchar(50) NOT NULL,\
+    description varchar(505),\
+    cost varchar(15) NOT NULL, \
+    imageExtension varchar(10) NOT NULL,\
+    isDeleted bool DEFAULT FALSE,\
+    sizes varchar(50) NOT NULL, \
+    PRIMARY KEY (_ID) );"
+)
+connection.commit()
+
 
 cursor.close()
 connection.close()

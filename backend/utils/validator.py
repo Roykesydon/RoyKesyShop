@@ -38,5 +38,37 @@ class Validator:
         if input is None or len(input) < 6 or len(input) > 30:
             self._errors.append("Password format is wrong")
 
+    def check_clothing_title(self, input):
+        if input is None or len(input) < 2 or len(input) > 50:
+            self._errors.append("Clothing title format is wrong")
+
+    def check_clothing_description(self, input):
+        if input is None or len(input) > 500:
+            self._errors.append("Clothing description format is wrong")
+
+    def check_clothing_cost(self, input):
+        if input is None or not input.replace(".", "", 1).isdigit():
+            self._errors.append("Clothing cost format is wrong")
+        try:
+            if float(input) > 1000000:
+                self._errors.append("Clothing cost format is wrong")
+        except:
+            self._errors.append("Clothing cost format is wrong")
+
+    def check_upload_picture(self, input, extension):
+        """
+        TODO
+        """
+        acceptExtensions = ["jpg", "jpeg", "png"]
+        if extension not in acceptExtensions:
+            self._errors.append("Image extension is not accepted")
+
+    def check_selected_size(self, input):
+        try:
+            if len(input) == 0 or input == None:
+                self._errors.append("Selected size format is wrong")
+        except:
+            self._errors.append("Selected size format is wrong")
+
     def get_errors(self):
         return self._errors

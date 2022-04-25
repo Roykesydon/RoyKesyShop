@@ -6,7 +6,7 @@ from flask import Blueprint, request
 
 from utils.config import get_config
 from utils.jwt_handle import make_jwt_token
-from utils.sql_executor import SQLExecutor
+from utils.transaction_executor import TransactionExecutor
 from utils.validator import Validator
 
 user = Blueprint("user", __name__)
@@ -36,52 +36,54 @@ def register():
         returnJson["msg"] = errors[0]
         return returnJson
 
-    sqlExecutor = SQLExecutor()
+    with TransactionExecutor() as transactionExecutor:
+        """
+        Check whether email already been used or not
+        """
+        successFlag, result = transactionExecutor.query_sql(
+            "SELECT * from Users WHERE email = %(email)s",
+            {"email": email},
+            fetchOne=True,
+        )
 
-    """
-    Check whether email already been used or not
-    """
-    successFlag, result = sqlExecutor.query_sql(
-        "SELECT * from Users WHERE email = %(email)s", {"email": email}, fetchOne=True
-    )
-    if successFlag:
-        if result != None:
-            returnJson["msg"] = "Email already been used"
+        if successFlag:
+            if result != None:
+                returnJson["msg"] = "Email already been used"
+                return returnJson
+        else:
+            returnJson["msg"] = "server error"
             return returnJson
-    else:
-        returnJson["msg"] = "server error"
-        return returnJson
 
-    """
-    Insert user information into database
-    """
-    salt = os.urandom(16)
-    salt = base64.b64encode(salt)
+        """
+        Insert user information into database
+        """
+        salt = os.urandom(16)
+        salt = base64.b64encode(salt)
 
-    hashPassword = hashlib.pbkdf2_hmac(
-        "sha256", password.encode("utf-8"), salt, 100000
-    ).hex()
+        hashPassword = hashlib.pbkdf2_hmac(
+            "sha256", password.encode("utf-8"), salt, 100000
+        ).hex()
 
-    insertString = "INSERT INTO Users(name, email, salt, password) values (%(Name)s, %(email)s, %(salt)s, %(password)s)"
-    successFlag = sqlExecutor.execute_transaction(
-        [
-            (
-                insertString,
-                {
-                    "Name": None,
-                    "email": email,
-                    "salt": salt,
-                    "password": hashPassword,
-                },
-            )
-        ]
-    )
-    if not successFlag:
-        returnJson["msg"] = "server error"
-        return returnJson
+        insertString = "INSERT INTO Users(name, email, salt, password) values (%(Name)s, %(email)s, %(salt)s, %(password)s)"
+        successFlag = transactionExecutor.execute_sql(
+            insertString,
+            {
+                "Name": None,
+                "email": email,
+                "salt": salt,
+                "password": hashPassword,
+            },
+        )
+        if not successFlag:
+            returnJson["msg"] = "server error"
+            return returnJson
 
-    returnJson["success"] = 1
-    returnJson["token"] = make_jwt_token(email)
+        if not transactionExecutor.commit():
+            returnJson["msg"] = "SQL Insert error"
+            return returnJson
+
+        returnJson["success"] = 1
+        returnJson["token"] = make_jwt_token(email)
 
     return returnJson
 
@@ -92,7 +94,7 @@ def login():
     email = data["email"]
     password = data["password"]
 
-    returnJson = {"success": 0, "msg": "", "token": ""}
+    returnJson = {"success": 0, "msg": "", "token": "", "isAdmin": 0}
 
     validator = Validator()
     validator.required([email, password])
@@ -104,34 +106,40 @@ def login():
         returnJson["msg"] = errors[0]
         return returnJson
 
-    sqlExecutor = SQLExecutor()
-
-    """
-    Check whether email exists in database and get salt and password 
-    """
-    successFlag, result = sqlExecutor.query_sql(
-        "SELECT salt, password from Users WHERE email = %(email)s",
-        {"email": email},
-        fetchOne=True,
-    )
-    if successFlag:
-        if result == None:
-            returnJson["msg"] = "Email doesn't exist"
+    with TransactionExecutor() as transactionExecutor:
+        """
+        Check whether email exists in database and get salt, password  and isAdmin
+        """
+        successFlag, result = transactionExecutor.query_sql(
+            "SELECT salt, password, isAdmin from Users WHERE email = %(email)s",
+            {"email": email},
+            fetchOne=True,
+        )
+        if successFlag:
+            if result == None:
+                returnJson["msg"] = "Email doesn't exist"
+                return returnJson
+        else:
+            returnJson["msg"] = "Server error"
             return returnJson
-    else:
-        returnJson["msg"] = "Server error"
-        return returnJson
 
-    salt, passwordInDatabase = result
-    hashPassword = hashlib.pbkdf2_hmac(
-        "sha256", password.encode("utf-8"), salt.encode(), 100000
-    ).hex()
+        salt, passwordInDatabase, isAdmin = result
+        hashPassword = hashlib.pbkdf2_hmac(
+            "sha256", password.encode("utf-8"), salt.encode(), 100000
+        ).hex()
 
-    if hashPassword != passwordInDatabase:
-        returnJson["msg"] = "Password is wrong"
-        return returnJson
+        if hashPassword != passwordInDatabase:
+            returnJson["msg"] = "Password is wrong"
+            return returnJson
 
-    returnJson["success"] = 1
-    returnJson["token"] = make_jwt_token(email)
+        if not transactionExecutor.commit():
+            returnJson["msg"] = "SQL Insert error"
+            return returnJson
+
+        returnJson["success"] = 1
+        returnJson["token"] = make_jwt_token(email, isAdmin="1" if isAdmin else "0")
+
+        if isAdmin:
+            returnJson["isAdmin"] = 1
 
     return returnJson

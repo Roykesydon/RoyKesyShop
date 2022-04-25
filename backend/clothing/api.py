@@ -1,7 +1,9 @@
 import base64
 from cmath import cos
+from fileinput import filename
+from pathlib import Path
 
-from flask import Blueprint, request
+from flask import Blueprint, request, send_from_directory
 
 from utils.jwt_handle import check_jwt_token_and_get_info, make_jwt_token
 from utils.transaction_executor import TransactionExecutor
@@ -29,9 +31,13 @@ def index():
     return returnJson
 
 
-@clothing.route("/<int:id>", methods=["GET"])
-def get_clothing_with_id(id):
-    return "Hello clothing" + str(id)
+@clothing.route("/image/<string:filename>", methods=["GET"])
+def get_clothing_with_id(filename):
+    if Path(f"./uploadFiles/clothingImages/{filename}").is_file():
+        return send_from_directory(
+            "./uploadFiles/clothingImages/", f"{filename}"
+        )
+    return "Can't find file"
 
 
 @clothing.route("/", methods=["POST"])

@@ -109,7 +109,7 @@
 
 <script>
 import { rules } from "@/jsLibrary/rules.js";
-import { apiAddress } from "@/config.js";
+import { sendNormalRequest } from "@/jsLibrary/request.js";
 
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/vue-loading.css";
@@ -161,43 +161,20 @@ export default {
     sendAddClothingRequest: async function () {
       this.sumbitCheckInterface = false;
       this.isLoading = true;
-      await this.$axios
-        .post(
-          apiAddress + "/clothing",
-          {
-            title: this.title,
-            cost: this.cost,
-            description: this.description,
-            selectedSize: this.selectedSize,
-            image: this.previewImage,
-          },
-          { headers: { Authorization: `Bearer ${this.$cookies.get("token")}` } }
-        )
-        .then((response) => {
-          if (response.data.success == 1) {
-            this.$cookies.set("token", response.data.token);
-            if (response.data.isAdmin) {
-              this.$cookies.set("token", response.data.token);
-            }
-            this.$cookies.set("isAdmin", response.data.isAdmin);
-            this.$toast.success("Login Success!", {
-              position: "top-center",
-              timeout: 2000,
-            });
-          } else {
-            this.$toast.error(response.data.msg, {
-              position: "top-center",
-              timeout: 2000,
-            });
-          }
-        })
-        .catch((error) => {
-          this.$toast.error(String(error), {
-            position: "top-center",
-            timeout: 2000,
-          });
-          console.log(error);
-        });
+      await sendNormalRequest(
+        this,
+        "/clothing/",
+        {
+          title: this.title,
+          cost: this.cost,
+          description: this.description,
+          selectedSize: this.selectedSize,
+          image: this.previewImage,
+        },
+        true,
+        "Successfully add clothing!",
+        "success"
+      );
       this.isLoading = false;
     },
   },

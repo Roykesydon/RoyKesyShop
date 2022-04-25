@@ -1,5 +1,5 @@
 <template>
-  <v-card class="ma-15" height="80vh">
+  <v-card class="ma-15" height="70vh">
     <v-toolbar flat color="primaryDark" dark>
       <v-toolbar-title>Admin Dashboard</v-toolbar-title>
     </v-toolbar>

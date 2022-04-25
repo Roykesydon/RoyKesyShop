@@ -117,6 +117,10 @@ export default {
           }
         })
         .catch((error) => {
+          this.$toast.error(String(error), {
+            position: "top-center",
+            timeout: 2000,
+          });
           console.log(error);
         });
     },

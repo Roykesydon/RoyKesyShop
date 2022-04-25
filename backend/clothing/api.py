@@ -1,5 +1,4 @@
 import base64
-import hashlib
 from cmath import cos
 
 from flask import Blueprint, request
@@ -13,7 +12,21 @@ clothing = Blueprint("clothing", __name__)
 
 @clothing.route("/", methods=["GET"])
 def index():
-    return "Hello clothing"
+    batch = request.args.get("batch", default=0, type=int)
+    BATCH_SIZE = 20
+    returnJson = {"success": 0, "msg": "", "data": None}
+    with TransactionExecutor() as transactionExecutor:
+        successFlag, result = transactionExecutor.query_sql(
+            "SELECT * from Clothing WHERE isDeleted = false order by _ID DESC limit %(BATCH_SIZE)s offset %(offset)s",
+            {"BATCH_SIZE": BATCH_SIZE, "offset": batch * BATCH_SIZE},
+        )
+    if not successFlag:
+        returnJson["msg"] = "Can't get data"
+        return returnJson
+
+    returnJson["success"] = 1
+    returnJson["data"] = result
+    return returnJson
 
 
 @clothing.route("/<int:id>", methods=["GET"])

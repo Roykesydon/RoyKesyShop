@@ -11,6 +11,11 @@ from utils.validator import Validator
 
 clothing = Blueprint("clothing", __name__)
 
+"""
+Get clothing info without detail.
+Get a batch of clothing every time by the batch index.
+"""
+
 
 @clothing.route("/", methods=["GET"])
 def index():
@@ -19,7 +24,7 @@ def index():
     returnJson = {"success": 0, "msg": "", "data": None}
     with TransactionExecutor() as transactionExecutor:
         successFlag, result = transactionExecutor.query_sql(
-            "SELECT * from Clothing WHERE isDeleted = false order by _ID DESC limit %(BATCH_SIZE)s offset %(offset)s",
+            "SELECT _ID, title, cost, imageExtension, sizes from Clothing WHERE isDeleted = false order by _ID DESC limit %(BATCH_SIZE)s offset %(offset)s",
             {"BATCH_SIZE": BATCH_SIZE, "offset": batch * BATCH_SIZE},
         )
     if not successFlag:
@@ -34,9 +39,7 @@ def index():
 @clothing.route("/image/<string:filename>", methods=["GET"])
 def get_clothing_with_id(filename):
     if Path(f"./uploadFiles/clothingImages/{filename}").is_file():
-        return send_from_directory(
-            "./uploadFiles/clothingImages/", f"{filename}"
-        )
+        return send_from_directory("./uploadFiles/clothingImages/", f"{filename}")
     return "Can't find file"
 
 

@@ -29,6 +29,21 @@ cursor.execute(
 )
 connection.commit()
 
+cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
+connection.commit()
+cursor.execute("DROP TABLE IF EXISTS ClothingClass;")
+connection.commit()
+cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
+connection.commit()
+
+cursor.execute(
+    "CREATE TABLE IF NOT EXISTS ClothingClass( \
+    class varchar(30) NOT NULL,\
+    subClass varchar(30) NOT NULL,\
+    PRIMARY KEY (class, subClass) );"
+)
+connection.commit()
+
 
 cursor.execute("DROP TABLE IF EXISTS Clothing;")
 connection.commit()
@@ -42,7 +57,10 @@ cursor.execute(
     imageExtension varchar(10) NOT NULL,\
     isDeleted bool DEFAULT FALSE,\
     sizes varchar(50) NOT NULL, \
-    PRIMARY KEY (_ID) );"
+    class varchar(30) NOT NULL,\
+    subClass varchar(30) NOT NULL,\
+    PRIMARY KEY (_ID),\
+    FOREIGN KEY clothingClassForeignKey (class, subClass) REFERENCES ClothingClass(class, subClass));"
 )
 connection.commit()
 

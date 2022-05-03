@@ -70,5 +70,13 @@ class Validator:
         except:
             self._errors.append("Selected size format is wrong")
 
+    def check_clothing_parent_class(self, input):
+        if input is None or len(input) < 1 or len(input) > 25:
+            self._errors.append("Parent clothing class format is wrong")
+
+    def check_clothing_sub_class(self, input):
+        if input is None or len(input) < 1 or len(input) > 25:
+            self._errors.append("Sub clothing class format is wrong")
+
     def get_errors(self):
         return self._errors

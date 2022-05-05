@@ -85,8 +85,11 @@ export default {
   computed: {
     cartItemCount: {
       get() {
-        if (this.$cookies.isKey("cartItemCount") == false) return "0";
-        else return this.$cookies.get("cartItemCount");
+        if (this.$cookies.isKey("cartItems") == false) {
+          return "0";
+        } else {
+          return String(this.$cookies.get("cartItems")).split(",").length;
+        }
       },
     },
     barColorMode: {

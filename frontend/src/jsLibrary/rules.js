@@ -44,4 +44,16 @@ export const rules = {
   files: (v) => {
     return v.length > 0 || "Please uplaod picture";
   },
+  parentClass: (v) => {
+    return (
+      (v != null && v.length >= 1 && v.length <= 25) ||
+      "Must be between 1-25 characters"
+    );
+  },
+  subClass: (v) => {
+    return (
+      (v != null && v.length >= 1 && v.length <= 25) ||
+      "Must be between 1-25 characters"
+    );
+  },
 };

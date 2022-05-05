@@ -16,7 +16,9 @@
     "vue-cookies-reactive": "^2.1.1",
     "vue-dark-mode-switch": "^1.1.0",
     "vue-loading-overlay": "3.0",
+    "vue-mugen-scroll": "^0.2.6",
     "vue-router": "^3.5.1",
+    "vue-sidebar-menu": "^4.8.1",
     "vue-toast-notification": "^0.6.2",
     "vue-toastification": "^1.7.14",
     "vuetify": "^2.6.0"

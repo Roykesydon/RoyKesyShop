@@ -6,14 +6,14 @@
   height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #999;
-  border: thin solid #999;
-  box-shadow: 0px 0px 3px #dfdfdf inset;
+  background: rgba(153, 153, 153, 0);
+  border: thin solid rgba(153, 153, 153, 0);
+  box-shadow: 0px 0px 3px #dfdfdf00 inset;
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb {
   background: #555;
-  border: thin solid gray;
+  border: thin solid rgb(64, 64, 64);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {

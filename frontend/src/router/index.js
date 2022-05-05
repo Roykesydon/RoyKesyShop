@@ -3,6 +3,7 @@ import VueRouter from "vue-router";
 import HomeView from "@/views/HomeView.vue";
 import ShoppingView from "@/views/ShoppingView.vue";
 import DashboardView from "@/views/DashboardView.vue";
+import ClothingDetailView from "@/views/ClothingDetailView.vue";
 
 Vue.use(VueRouter);
 
@@ -21,6 +22,11 @@ const routes = [
     path: "/dashboard",
     name: "dashboard",
     component: DashboardView,
+  },
+  {
+    path: "/clothing/:id",
+    name: "clothing_detail",
+    component: ClothingDetailView,
   },
 ];
 

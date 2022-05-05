@@ -3,21 +3,28 @@ import { clearUserInformationCookies } from "@/jsLibrary/cookies.js";
 
 export function sendNormalRequest(
   _this,
+  method,
   apiUrl,
-  content,
+  data,
+  params,
   token = false,
   successToastMessage = "",
   returnDataKey = ""
 ) {
-  let axiosConfig = {};
-  if (token == true) {
-    axiosConfig = {
-      headers: { Authorization: `Bearer ${_this.$cookies.get("token")}` },
+  return new Promise((resolve, reject) => {
+    let axiosRequest = {
+      method: method,
+      url: apiAddress + apiUrl,
+      data: data,
+      params: params,
     };
-  }
-  _this.$axios
-    .post(apiAddress + apiUrl, content, axiosConfig)
-    .then((response) => {
+    if (token == true) {
+      axiosRequest["headers"] = {
+        Authorization: `Bearer ${_this.$cookies.get("token")}`,
+      };
+    }
+
+    _this.$axios(axiosRequest).then((response) => {
       console.log(response.data);
       if (response.data.success == 1) {
         if (successToastMessage != "") {
@@ -27,8 +34,9 @@ export function sendNormalRequest(
           });
         }
         if (returnDataKey != "") {
-          return response.data[returnDataKey];
+          resolve(response.data[returnDataKey]);
         }
+        resolve();
       } else {
         if (token == true) {
           if (response.data.msg.toLowerCase().includes("token")) {
@@ -37,13 +45,15 @@ export function sendNormalRequest(
               position: "top-center",
               timeout: 2000,
             });
-            return;
+            resolve("success");
           }
         }
         _this.$toast.error(response.data.msg, {
           position: "top-center",
           timeout: 2000,
         });
+        reject("error");
       }
     });
+  });
 }

@@ -1,10 +1,18 @@
 .light-bar {
-  background: linear-gradient(270deg, #5774ec, #4980ee);
+  background-image: linear-gradient(
+    to right,
+    #3276a1,
+    #206599,
+    #155490,
+    #174285,
+    #203078
+  );
+  /* background: linear-gradient(270deg, #5774ec, #4980ee);
   background-size: 400% 400%;
 
   -webkit-animation: AnimationName 0s ease infinite;
   -moz-animation: AnimationName 0s ease infinite;
-  animation: AnimationName 0s ease infinite;
+  animation: AnimationName 0s ease infinite; */
 }
 
 @-webkit-keyframes AnimationName {

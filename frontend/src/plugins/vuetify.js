@@ -23,7 +23,7 @@ export default new Vuetify({
       light: {
         primary: "#039BE5",
         primaryDark: "#039BE5",
-        secondary: "#9575CD",
+        secondary: "#5E35B1",
         accent: colors.shades.black,
         error: colors.red.accent3,
         customBackground: "#F5F5F5",

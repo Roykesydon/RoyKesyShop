@@ -5,13 +5,18 @@
     </v-toolbar>
     <v-tabs vertical class="mt-10">
       <v-tab>
+        <v-icon left> mdi-table </v-icon>
+        Add clothing class
+      </v-tab>
+      <v-divider></v-divider>
+      <v-tab>
         <v-icon left> mdi-tshirt-crew </v-icon>
         Add clothing
       </v-tab>
       <v-divider></v-divider>
       <v-tab>
         <v-icon left> mdi-text-box-multiple-outline </v-icon>
-        delete/ modify clothing
+        Update clothing
       </v-tab>
       <v-divider></v-divider>
       <v-tab>
@@ -25,6 +30,7 @@
       </v-tab>
 
       <!-- Add clothing -->
+      <v-tab-item><update-clothing-class /> </v-tab-item>
       <v-tab-item><add-clothing /> </v-tab-item>
 
       <v-tab-item>
@@ -95,14 +101,16 @@
 
 <script>
 import AddClothing from "@/components/adminDashboard/AddClothing.vue";
+import UpdateClothingClass from "@/components/adminDashboard/UpdateClothingClass.vue";
 
 export default {
   name: "DashboardView",
   components: {
     AddClothing,
+    UpdateClothingClass,
   },
 
-  data: () => ({ previewImage: "" }),
+  data: () => ({ previewImage: false }),
 
   mounted() {},
 

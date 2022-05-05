@@ -1,11 +1,11 @@
 .light-background {
   background-image: radial-gradient(
     circle,
+    #ececec,
     #e5e5e5,
-    #c9c9c9,
-    #adadad,
-    #929292,
-    #787878
+    #dddddd,
+    #d6d6d6,
+    #cfcfcf
   );
   /* background: linear-gradient(128deg, #e6e6e6, #585858);
   background-size: 400% 400%;

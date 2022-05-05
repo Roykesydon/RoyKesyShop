@@ -1,13 +1,13 @@
 <template>
   <v-card flat class="pa-10" style="height: 70vh">
-    <loading
-      :active.sync="isLoading"
-      :can-cancel="false"
-      :is-full-page="false"
-      :color="$vuetify.theme.currentTheme.primary"
-      :background-color="$vuetify.theme.currentTheme.customBackground"
-    ></loading>
     <v-row>
+      <loading
+        :active.sync="isLoading"
+        :can-cancel="false"
+        :is-full-page="false"
+        :color="$vuetify.theme.currentTheme.primary"
+        :background-color="$vuetify.theme.currentTheme.customBackground"
+      ></loading>
       <v-col cols="6" class="pr-5">
         <v-img
           id="output"
@@ -29,16 +29,36 @@
           <h3 class="font-weight-thin">Title</h3>
           <v-text-field
             v-model="title"
-            filled
+            outlined
             :rules="[rules.required, rules.title]"
             counter="50"
             label="Title"
           ></v-text-field>
 
+          <div class="d-flex">
+            <v-select
+              v-model="selectParentClass"
+              :items="Object.keys(existedClasses)"
+              :rules="[rules.required]"
+              label="Parent Class"
+              class="mr-5"
+              outlined
+            ></v-select>
+
+            <v-select
+              v-model="selectSubClass"
+              :items="existedClasses[selectParentClass]"
+              :rules="[rules.required]"
+              label="Sub Class"
+              class="mr-5"
+              outlined
+            ></v-select>
+          </div>
+
           <h3 class="font-weight-thin">Cost</h3>
           <v-text-field
             v-model="cost"
-            filled
+            outlined
             :rules="[rules.required, rules.cost]"
             counter="10"
             label="Cost"
@@ -48,7 +68,7 @@
           <v-textarea
             v-model="description"
             :rules="[rules.description]"
-            filled
+            outlined
             counter="500"
           ></v-textarea>
 
@@ -123,18 +143,37 @@ export default {
 
   data: () => ({
     previewImage: "",
+
     title: "",
     cost: "",
     description: "",
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     selectedSize: ["M", "L"],
+    selectParentClass: "",
+    selectSubClass: "",
+
     rules: rules,
     sumbitCheckInterface: false,
     addClothingValid: false,
+
     isLoading: false,
+    existedClasses: {},
   }),
 
-  mounted() {},
+  async mounted() {
+    await sendNormalRequest(
+      this,
+      "get",
+      "/clothing_class/",
+      {},
+      {},
+      false,
+      "",
+      "data"
+    ).then((data) => {
+      this.existedClasses = data;
+    });
+  },
 
   methods: {
     uploadPreview: function (file) {
@@ -152,9 +191,8 @@ export default {
     },
 
     wantToSubmit: function () {
-      if (this.$refs.addClothingForm.validate() == false) {
-        return;
-      }
+      if (this.$refs.addClothingForm.validate() == false) return;
+
       this.sumbitCheckInterface = true;
     },
 
@@ -163,6 +201,7 @@ export default {
       this.isLoading = true;
       await sendNormalRequest(
         this,
+        "post",
         "/clothing/",
         {
           title: this.title,
@@ -170,11 +209,16 @@ export default {
           description: this.description,
           selectedSize: this.selectedSize,
           image: this.previewImage,
+          selectParentClass: this.selectParentClass,
+          selectSubClass: this.selectSubClass,
         },
+        {},
         true,
         "Successfully add clothing!",
         "success"
-      );
+      ).catch((error) => {
+        console.log(error);
+      });
       this.isLoading = false;
     },
   },

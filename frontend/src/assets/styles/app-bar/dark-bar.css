@@ -1,10 +1,18 @@
 .dark-bar {
-  background: linear-gradient(270deg, #b74bf3, #8452e8);
+  background-image: linear-gradient(
+    to right,
+    #612283,
+    #582284,
+    #4e2284,
+    #432285,
+    #372285
+  );
+  /* background: linear-gradient(270deg, #b74bf3, #8452e8);
   background-size: 400% 400%;
 
   -webkit-animation: AnimationName 0s ease infinite;
   -moz-animation: AnimationName 0s ease infinite;
-  animation: AnimationName 0s ease infinite;
+  animation: AnimationName 0s ease infinite; */
 }
 
 @-webkit-keyframes AnimationName {

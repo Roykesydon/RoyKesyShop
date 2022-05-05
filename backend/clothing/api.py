@@ -1,4 +1,5 @@
 import base64
+from ast import keyword
 from cmath import cos
 from fileinput import filename
 from pathlib import Path
@@ -36,6 +37,33 @@ def index():
     return returnJson
 
 
+@clothing.route("/search/<string:keyword>", methods=["GET"])
+def search_by_keyword(keyword):
+    """
+    TODO: multiple keywords
+    """
+    batch = request.args.get("batch", default=0, type=int)
+    BATCH_SIZE = 20
+
+    returnJson = {"success": 0, "msg": "", "data": None}
+    with TransactionExecutor() as transactionExecutor:
+        successFlag, result = transactionExecutor.query_sql(
+            "SELECT _ID, title, cost, imageExtension, sizes from Clothing WHERE isDeleted = false and title LIKE CONCAT('%%', %(keyword)s, '%%') order by _ID DESC limit %(BATCH_SIZE)s offset %(offset)s",
+            {
+                "keyword": str(keyword),
+                "BATCH_SIZE": BATCH_SIZE,
+                "offset": batch * BATCH_SIZE,
+            },
+        )
+    if not successFlag:
+        returnJson["msg"] = "Can't get data"
+        return returnJson
+
+    returnJson["success"] = 1
+    returnJson["data"] = result
+    return returnJson
+
+
 @clothing.route("/image/<string:filename>", methods=["GET"])
 def get_clothing_with_id(filename):
     if Path(f"./uploadFiles/clothingImages/{filename}").is_file():
@@ -51,6 +79,8 @@ def create_clothing():
     cost = data["cost"]
     description = data["description"]
     selectedSize = ",".join(data["selectedSize"])
+    selectParentClass = data["selectParentClass"]
+    selectSubClass = data["selectSubClass"]
     image = data["image"]
     token = request.headers.get("Authorization").replace("Bearer ", "")
     extension = image.split(";")[0].split("/")[-1]
@@ -85,8 +115,8 @@ def create_clothing():
     Insert Clothing to database and store in folder
     """
     with TransactionExecutor() as transactionExecutor:
-        insertString = "INSERT INTO Clothing(title, description, cost, imageExtension, sizes) \
-            values (%(title)s, %(description)s, %(cost)s, %(imageExtension)s, %(sizes)s)"
+        insertString = "INSERT INTO Clothing(title, description, cost, imageExtension, sizes, class, subClass) \
+            values (%(title)s, %(description)s, %(cost)s, %(imageExtension)s, %(sizes)s, %(class)s, %(subClass)s)"
         successFlag = transactionExecutor.execute_sql(
             insertString,
             {
@@ -95,6 +125,8 @@ def create_clothing():
                 "cost": cost,
                 "imageExtension": extension,
                 "sizes": selectedSize,
+                "class": selectParentClass,
+                "subClass": selectSubClass,
             },
         )
         if not successFlag:

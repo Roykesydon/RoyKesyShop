@@ -42,46 +42,59 @@ def get_all_classes():
     return returnJson
 
 
-"""
-Get clothing with chosen parent class.
-Get a batch of clothing every time by the batch index.
-"""
-
-
 @clothingClass.route("/<string:parentClass>", methods=["GET"])
-def get_clothing_with_parent_class():
-    pass
-    # batch = request.args.get("batch", default=0, type=int)
-    # BATCH_SIZE = 20
-    # returnJson = {"success": 0, "msg": "", "data": None}
-    # with TransactionExecutor() as transactionExecutor:
-    #     successFlag, result = transactionExecutor.query_sql(
-    #         "SELECT _ID, title, cost, imageExtension, sizes from Clothing WHERE isDeleted = false order by _ID DESC limit %(BATCH_SIZE)s offset %(offset)s",
-    #         {"BATCH_SIZE": BATCH_SIZE, "offset": batch * BATCH_SIZE},
-    #     )
-    # if not successFlag:
-    #     returnJson["msg"] = "Can't get data"
-    #     return returnJson
+def get_clothing_with_parent_class(parentClass):
+    """
+    Get clothing with chosen parent class.
+    Get a batch of clothing every time by the batch index.
+    """
+    batch = request.args.get("batch", default=0, type=int)
+    BATCH_SIZE = 20
+    returnJson = {"success": 0, "msg": "", "data": None}
+    with TransactionExecutor() as transactionExecutor:
+        successFlag, result = transactionExecutor.query_sql(
+            "SELECT _ID, title, cost, imageExtension, sizes from Clothing WHERE isDeleted = false and class = %(parentClass)s order by _ID DESC limit %(BATCH_SIZE)s offset %(offset)s",
+            {
+                "parentClass": parentClass,
+                "BATCH_SIZE": BATCH_SIZE,
+                "offset": batch * BATCH_SIZE,
+            },
+        )
+    if not successFlag:
+        returnJson["msg"] = "Can't get data"
+        return returnJson
 
-    # returnJson["success"] = 1
-    # returnJson["data"] = result
-    # return returnJson
+    returnJson["success"] = 1
+    returnJson["data"] = result
+    return returnJson
 
 
-"""
-Get clothing with chosen parent class and sub class.
-Get a batch of clothing every time by the batch index.
-"""
+@clothingClass.route("/<string:parentClass>/<string:subClass>", methods=["GET"])
+def get_clothing_with_sub_class(parentClass, subClass):
+    """
+    Get clothing with chosen parent class and sub class.
+    Get a batch of clothing every time by the batch index.
+    """
+    batch = request.args.get("batch", default=0, type=int)
+    BATCH_SIZE = 20
+    returnJson = {"success": 0, "msg": "", "data": None}
+    with TransactionExecutor() as transactionExecutor:
+        successFlag, result = transactionExecutor.query_sql(
+            "SELECT _ID, title, cost, imageExtension, sizes from Clothing WHERE isDeleted = false and class = %(parentClass)s and subClass = %(subClass)s order by _ID DESC limit %(BATCH_SIZE)s offset %(offset)s",
+            {
+                "parentClass": parentClass,
+                "subClass": subClass,
+                "BATCH_SIZE": BATCH_SIZE,
+                "offset": batch * BATCH_SIZE,
+            },
+        )
+    if not successFlag:
+        returnJson["msg"] = "Can't get data"
+        return returnJson
 
-
-@clothingClass.route("/<string:parenClass>/<string:subClass>", methods=["GET"])
-def get_clothing_with_sub_class(filename):
-    pass
-    # if Path(f"./uploadFiles/clothingImages/{filename}").is_file():
-    #     return send_from_directory(
-    #         "./uploadFiles/clothingImages/", f"{filename}"
-    #     )
-    # return "Can't find file"
+    returnJson["success"] = 1
+    returnJson["data"] = result
+    return returnJson
 
 
 @clothingClass.route("/", methods=["POST"])

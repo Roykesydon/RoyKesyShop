@@ -22,20 +22,35 @@ Get a batch of clothing every time by the batch index.
 def index():
     batch = request.args.get("batch", default=0, type=int)
     BATCH_SIZE = 20
-    returnJson = {"success": 0, "msg": "", "data": None}
-    with TransactionExecutor() as transactionExecutor:
-        successFlag, result = transactionExecutor.query_sql(
+    return_json = {"success": 0, "msg": "", "data": None}
+    with TransactionExecutor() as transaction_executor:
+        success_flag, result = transaction_executor.query_sql(
             "SELECT _ID, title, cost, imageExtension, sizes from Clothing WHERE isDeleted = false order by _ID DESC limit %(BATCH_SIZE)s offset %(offset)s",
             {"BATCH_SIZE": BATCH_SIZE, "offset": batch * BATCH_SIZE},
         )
-    if not successFlag:
-        returnJson["msg"] = "Can't get data"
-        return returnJson
+    if not success_flag:
+        return_json["msg"] = "Can't get data"
+        return return_json
 
-    returnJson["success"] = 1
-    returnJson["data"] = result
-    return returnJson
+    return_json["success"] = 1
+    return_json["data"] = result
+    return return_json
 
+@clothing.route("/<int:id>", methods=["GET"])
+def get_clothing_by_id():
+    return_json = {"success": 0, "msg": "", "data": None}
+    with TransactionExecutor() as transaction_executor:
+        success_flag, result = transaction_executor.query_sql(
+            "SELECT _ID, title, cost, imageExtension, sizes from Clothing WHERE isDeleted = false and _ID = %(clohting_id)s",
+            {"clothing_id": id},
+        )
+    if not success_flag:
+        return_json["msg"] = "Can't get data"
+        return return_json
+
+    return_json["success"] = 1
+    return_json["data"] = result
+    return return_json
 
 @clothing.route("/search/<string:keyword>", methods=["GET"])
 def search_by_keyword(keyword):
@@ -45,9 +60,9 @@ def search_by_keyword(keyword):
     batch = request.args.get("batch", default=0, type=int)
     BATCH_SIZE = 20
 
-    returnJson = {"success": 0, "msg": "", "data": None}
-    with TransactionExecutor() as transactionExecutor:
-        successFlag, result = transactionExecutor.query_sql(
+    return_json = {"success": 0, "msg": "", "data": None}
+    with TransactionExecutor() as transaction_executor:
+        success_flag, result = transaction_executor.query_sql(
             "SELECT _ID, title, cost, imageExtension, sizes from Clothing WHERE isDeleted = false and title LIKE CONCAT('%%', %(keyword)s, '%%') order by _ID DESC limit %(BATCH_SIZE)s offset %(offset)s",
             {
                 "keyword": str(keyword),
@@ -55,13 +70,13 @@ def search_by_keyword(keyword):
                 "offset": batch * BATCH_SIZE,
             },
         )
-    if not successFlag:
-        returnJson["msg"] = "Can't get data"
-        return returnJson
+    if not success_flag:
+        return_json["msg"] = "Can't get data"
+        return return_json
 
-    returnJson["success"] = 1
-    returnJson["data"] = result
-    return returnJson
+    return_json["success"] = 1
+    return_json["data"] = result
+    return return_json
 
 
 @clothing.route("/image/<string:filename>", methods=["GET"])
@@ -78,93 +93,93 @@ def create_clothing():
     title = data["title"]
     cost = data["cost"]
     description = data["description"]
-    selectedSize = ",".join(data["selectedSize"])
-    selectParentClass = data["selectParentClass"]
-    selectSubClass = data["selectSubClass"]
+    selected_size = ",".join(data["selectedSize"])
+    select_parent_class = data["selectParentClass"]
+    select_sub_class = data["selectSubClass"]
     image = data["image"]
     token = request.headers.get("Authorization").replace("Bearer ", "")
     extension = image.split(";")[0].split("/")[-1]
 
-    returnJson = {"success": 0, "msg": ""}
+    return_json = {"success": 0, "msg": ""}
 
     """
     Check jwt token and get info of it
     """
-    tokenParseResult = check_jwt_token_and_get_info(token, checkIsAdmin=True)
+    token_parse_result = check_jwt_token_and_get_info(token, check_is_admin=True)
 
-    if not tokenParseResult["success"]:
-        returnJson["msg"] = tokenParseResult["msg"]
-        return returnJson
+    if not token_parse_result["success"]:
+        return_json["msg"] = token_parse_result["msg"]
+        return return_json
 
     """
     Check input format
     """
     validator = Validator()
-    validator.required([title, cost, selectedSize, image])
+    validator.required([title, cost, selected_size, image])
     validator.check_clothing_title(title)
     validator.check_clothing_cost(cost)
-    validator.check_selected_size(selectedSize)
+    validator.check_selected_size(selected_size)
     validator.check_upload_picture(image, extension)
     errors = validator.get_errors()
 
     if len(errors) != 0:
-        returnJson["msg"] = errors[0]
-        return returnJson
+        return_json["msg"] = errors[0]
+        return return_json
 
     """
     Insert Clothing to database and store in folder
     """
-    with TransactionExecutor() as transactionExecutor:
+    with TransactionExecutor() as transaction_executor:
         insertString = "INSERT INTO Clothing(title, description, cost, imageExtension, sizes, class, subClass) \
-            values (%(title)s, %(description)s, %(cost)s, %(imageExtension)s, %(sizes)s, %(class)s, %(subClass)s)"
-        successFlag = transactionExecutor.execute_sql(
+            values (%(title)s, %(description)s, %(cost)s, %(image_extension)s, %(sizes)s, %(class)s, %(sub_class)s)"
+        success_flag = transaction_executor.execute_sql(
             insertString,
             {
                 "title": title,
                 "description": description,
                 "cost": cost,
-                "imageExtension": extension,
-                "sizes": selectedSize,
-                "class": selectParentClass,
-                "subClass": selectSubClass,
+                "image_extension": extension,
+                "sizes": selected_size,
+                "class": select_parent_class,
+                "sub_class": select_sub_class,
             },
         )
-        if not successFlag:
-            returnJson["msg"] = "Server error"
-            return returnJson
+        if not success_flag:
+            return_json["msg"] = "Server error"
+            return return_json
 
         """
         Get the new insert clothing _ID
         """
-        successFlag, result = transactionExecutor.query_sql(
+        success_flag, result = transaction_executor.query_sql(
             "select LAST_INSERT_ID()",
             {},
-            fetchOne=True,
+            fetch_one=True,
         )
 
-        if not successFlag:
-            returnJson["msg"] = "server error"
-            return returnJson
+        if not success_flag:
+            return_json["msg"] = "server error"
+            return return_json
 
-        clothingId = result[0]
+        clothing_id = result[0]
 
         """
         Save upload image
         """
         try:
-            imageBytes = image.split(",")[-1]
+            image_bytes = image.split(",")[-1]
             with open(
-                "./uploadFiles/clothingImages/" + str(clothingId) + "." + extension,
+                "./uploadFiles/clothingImages/" + str(clothing_id) + "." + extension,
                 "wb",
             ) as file:
-                file.write(base64.b64decode(imageBytes))
+                file.write(base64.b64decode(image_bytes))
         except:
-            returnJson["msg"] = "Save image fail"
-            return returnJson
+            return_json["msg"] = "Save image fail"
+            return return_json
 
-        if not transactionExecutor.commit():
-            returnJson["msg"] = "SQL Insert error"
-            return returnJson
+        if not transaction_executor.commit():
+            return_json["msg"] = "SQL Insert error"
+            return return_json
 
-    returnJson["success"] = 1
-    return returnJson
+    return_json["success"] = 1
+    return return_json

@@ -24,7 +24,7 @@ def register():
     email = data["email"]
     password = data["password"]
 
-    returnJson = {"success": 0, "msg": "", "token": ""}
+    return_json = {"success": 0, "msg": "", "token": ""}
 
     validator = Validator()
     validator.required([email, password])
@@ -33,26 +33,26 @@ def register():
     errors = validator.get_errors()
 
     if len(errors) != 0:
-        returnJson["msg"] = errors[0]
-        return returnJson
+        return_json["msg"] = errors[0]
+        return return_json
 
-    with TransactionExecutor() as transactionExecutor:
+    with TransactionExecutor() as transaction_executor:
         """
         Check whether email already been used or not
         """
-        successFlag, result = transactionExecutor.query_sql(
+        success_flag, result = transaction_executor.query_sql(
             "SELECT * from Users WHERE email = %(email)s",
             {"email": email},
-            fetchOne=True,
+            fetch_one=True,
         )
 
-        if successFlag:
+        if success_flag:
             if result != None:
-                returnJson["msg"] = "Email already been used"
-                return returnJson
+                return_json["msg"] = "Email already been used"
+                return return_json
         else:
-            returnJson["msg"] = "server error"
-            return returnJson
+            return_json["msg"] = "server error"
+            return return_json
 
         """
         Insert user information into database
@@ -60,32 +60,32 @@ def register():
         salt = os.urandom(16)
         salt = base64.b64encode(salt)
 
-        hashPassword = hashlib.pbkdf2_hmac(
+        hash_password = hashlib.pbkdf2_hmac(
             "sha256", password.encode("utf-8"), salt, 100000
         ).hex()
 
-        insertString = "INSERT INTO Users(name, email, salt, password) values (%(Name)s, %(email)s, %(salt)s, %(password)s)"
-        successFlag = transactionExecutor.execute_sql(
-            insertString,
+        insert_string = "INSERT INTO Users(name, email, salt, password) values (%(name)s, %(email)s, %(salt)s, %(password)s)"
+        success_flag = transaction_executor.execute_sql(
+            insert_string,
             {
-                "Name": None,
+                "name": None,
                 "email": email,
                 "salt": salt,
-                "password": hashPassword,
+                "password": hash_password,
             },
         )
-        if not successFlag:
-            returnJson["msg"] = "server error"
-            return returnJson
+        if not success_flag:
+            return_json["msg"] = "server error"
+            return return_json
 
-        if not transactionExecutor.commit():
-            returnJson["msg"] = "SQL Insert error"
-            return returnJson
+        if not transaction_executor.commit():
+            return_json["msg"] = "SQL Insert error"
+            return return_json
 
-        returnJson["success"] = 1
-        returnJson["token"] = make_jwt_token(email)
+        return_json["success"] = 1
+        return_json["token"] = make_jwt_token(email)
 
-    return returnJson
+    return return_json
 
 
 @user.route("/login", methods=["POST"])
@@ -94,7 +94,7 @@ def login():
     email = data["email"]
     password = data["password"]
 
-    returnJson = {"success": 0, "msg": "", "token": "", "isAdmin": 0}
+    return_json = {"success": 0, "msg": "", "token": "", "isAdmin": 0}
 
     validator = Validator()
     validator.required([email, password])
@@ -103,43 +103,43 @@ def login():
     errors = validator.get_errors()
 
     if len(errors) != 0:
-        returnJson["msg"] = errors[0]
-        return returnJson
+        return_json["msg"] = errors[0]
+        return return_json
 
-    with TransactionExecutor() as transactionExecutor:
+    with TransactionExecutor() as transaction_executor:
         """
         Check whether email exists in database and get salt, password  and isAdmin
         """
-        successFlag, result = transactionExecutor.query_sql(
+        success_flag, result = transaction_executor.query_sql(
             "SELECT salt, password, isAdmin from Users WHERE email = %(email)s",
             {"email": email},
-            fetchOne=True,
+            fetch_one=True,
         )
-        if successFlag:
+        if success_flag:
             if result == None:
-                returnJson["msg"] = "Email doesn't exist"
-                return returnJson
+                return_json["msg"] = "Email doesn't exist"
+                return return_json
         else:
-            returnJson["msg"] = "Server error"
-            return returnJson
+            return_json["msg"] = "Server error"
+            return return_json
 
-        salt, passwordInDatabase, isAdmin = result
-        hashPassword = hashlib.pbkdf2_hmac(
+        salt, password_in_database, is_admin = result
+        hash_password = hashlib.pbkdf2_hmac(
             "sha256", password.encode("utf-8"), salt.encode(), 100000
         ).hex()
 
-        if hashPassword != passwordInDatabase:
-            returnJson["msg"] = "Password is wrong"
-            return returnJson
+        if hash_password != password_in_database:
+            return_json["msg"] = "Password is wrong"
+            return return_json
 
-        if not transactionExecutor.commit():
-            returnJson["msg"] = "SQL Insert error"
-            return returnJson
+        if not transaction_executor.commit():
+            return_json["msg"] = "SQL Insert error"
+            return return_json
 
-        returnJson["success"] = 1
-        returnJson["token"] = make_jwt_token(email, isAdmin="1" if isAdmin else "0")
+        return_json["success"] = 1
+        return_json["token"] = make_jwt_token(email, is_admin="1" if is_admin else "0")
 
-        if isAdmin:
-            returnJson["isAdmin"] = 1
+        if is_admin:
+            return_json["isAdmin"] = 1
 
-    return returnJson
+    return return_json

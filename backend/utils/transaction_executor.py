@@ -22,47 +22,47 @@ class TransactionExecutor:
         if self.connection is not None:
             self.connection.close()
 
-    def execute_sql(self, sqlQuery, params):
-        successFlag = True
+    def execute_sql(self, sql_query, params):
+        success_flag = True
         try:
             with self.connection.cursor() as cursor:
-                cursor.execute(sqlQuery, params)
+                cursor.execute(sql_query, params)
 
         except Exception as error:
             print("Execute sql failed: {}".format(error))
-            successFlag = False
+            success_flag = False
             self.connection.rollback()
 
         finally:
-            return successFlag
+            return success_flag
 
-    def query_sql(self, sqlQuery, params, fetchOne=False):
-        successFlag = True
-        returnData = None
+    def query_sql(self, sql_query, params, fetch_one=False):
+        success_flag = True
+        return_data = None
 
         try:
             with self.connection.cursor() as cursor:
-                cursor.execute(sqlQuery, params)
+                cursor.execute(sql_query, params)
 
-                if fetchOne:
-                    returnData = cursor.fetchone()
+                if fetch_one:
+                    return_data = cursor.fetchone()
                 else:
-                    returnData = cursor.fetchall()
+                    return_data = cursor.fetchall()
 
         except Exception as error:
             print("Query failed: {}".format(error))
             self.connection.rollback()
-            successFlag = False
+            success_flag = False
 
-        return successFlag, returnData
+        return success_flag, return_data
 
     def commit(self):
-        successFlag = True
+        success_flag = True
         try:
             self.connection.commit()
         except Exception as error:
             print("Commit failed: {}".format(error))
             self.connection.rollback()
-            successFlag = False
+            success_flag = False
         finally:
-            return successFlag
+            return success_flag

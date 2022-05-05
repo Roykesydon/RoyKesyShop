@@ -9,164 +9,164 @@ from utils.jwt_handle import check_jwt_token_and_get_info
 from utils.transaction_executor import TransactionExecutor
 from utils.validator import Validator
 
-clothingClass = Blueprint("clothing_class", __name__)
+clothing_class = Blueprint("clothing_class", __name__)
 
 """
 Get all parent clothing classes with their sub classes
 """
 
 
-@clothingClass.route("/", methods=["GET"])
+@clothing_class.route("/", methods=["GET"])
 def get_all_classes():
-    returnJson = {"success": 0, "msg": "", "data": None}
+    return_json = {"success": 0, "msg": "", "data": None}
 
-    with TransactionExecutor() as transactionExecutor:
-        successFlag, result = transactionExecutor.query_sql(
+    with TransactionExecutor() as transaction_executor:
+        success_flag, result = transaction_executor.query_sql(
             "SELECT class, subClass from ClothingClass",
             {},
         )
-    if not successFlag:
-        returnJson["msg"] = "Can't get data"
-        return returnJson
+    if not success_flag:
+        return_json["msg"] = "Can't get data"
+        return return_json
 
-    classDict = {}
+    class_dict = {}
 
-    for [parentClass, subClass] in result:
+    for [parent_class, sub_class] in result:
         try:
-            classDict[parentClass].append(subClass)
+            class_dict[parent_class].append(sub_class)
         except:
-            classDict[parentClass] = [subClass]
+            class_dict[parent_class] = [sub_class]
 
-    returnJson["success"] = 1
-    returnJson["data"] = classDict
-    return returnJson
+    return_json["success"] = 1
+    return_json["data"] = class_dict
+    return return_json
 
 
-@clothingClass.route("/<string:parentClass>", methods=["GET"])
-def get_clothing_with_parent_class(parentClass):
+@clothing_class.route("/<string:parent_class>", methods=["GET"])
+def get_clothing_with_parent_class(parent_class):
     """
     Get clothing with chosen parent class.
     Get a batch of clothing every time by the batch index.
     """
     batch = request.args.get("batch", default=0, type=int)
     BATCH_SIZE = 20
-    returnJson = {"success": 0, "msg": "", "data": None}
-    with TransactionExecutor() as transactionExecutor:
-        successFlag, result = transactionExecutor.query_sql(
-            "SELECT _ID, title, cost, imageExtension, sizes from Clothing WHERE isDeleted = false and class = %(parentClass)s order by _ID DESC limit %(BATCH_SIZE)s offset %(offset)s",
+    return_json = {"success": 0, "msg": "", "data": None}
+    with TransactionExecutor() as transaction_executor:
+        success_flag, result = transaction_executor.query_sql(
+            "SELECT _ID, title, cost, imageExtension, sizes from Clothing WHERE isDeleted = false and class = %(parent_class)s order by _ID DESC limit %(BATCH_SIZE)s offset %(offset)s",
             {
-                "parentClass": parentClass,
+                "parent_class": parent_class,
                 "BATCH_SIZE": BATCH_SIZE,
                 "offset": batch * BATCH_SIZE,
             },
         )
-    if not successFlag:
-        returnJson["msg"] = "Can't get data"
-        return returnJson
+    if not success_flag:
+        return_json["msg"] = "Can't get data"
+        return return_json
 
-    returnJson["success"] = 1
-    returnJson["data"] = result
-    return returnJson
+    return_json["success"] = 1
+    return_json["data"] = result
+    return return_json
 
 
-@clothingClass.route("/<string:parentClass>/<string:subClass>", methods=["GET"])
-def get_clothing_with_sub_class(parentClass, subClass):
+@clothing_class.route("/<string:parent_class>/<string:sub_class>", methods=["GET"])
+def get_clothing_with_sub_class(parent_class, sub_class):
     """
     Get clothing with chosen parent class and sub class.
     Get a batch of clothing every time by the batch index.
     """
     batch = request.args.get("batch", default=0, type=int)
     BATCH_SIZE = 20
-    returnJson = {"success": 0, "msg": "", "data": None}
-    with TransactionExecutor() as transactionExecutor:
-        successFlag, result = transactionExecutor.query_sql(
-            "SELECT _ID, title, cost, imageExtension, sizes from Clothing WHERE isDeleted = false and class = %(parentClass)s and subClass = %(subClass)s order by _ID DESC limit %(BATCH_SIZE)s offset %(offset)s",
+    return_json = {"success": 0, "msg": "", "data": None}
+    with TransactionExecutor() as transaction_executor:
+        success_flag, result = transaction_executor.query_sql(
+            "SELECT _ID, title, cost, imageExtension, sizes from Clothing WHERE isDeleted = false and class = %(parent_class)s and subClass = %(sub_class)s order by _ID DESC limit %(BATCH_SIZE)s offset %(offset)s",
             {
-                "parentClass": parentClass,
-                "subClass": subClass,
+                "parent_class": parent_class,
+                "sub_class": sub_class,
                 "BATCH_SIZE": BATCH_SIZE,
                 "offset": batch * BATCH_SIZE,
             },
         )
-    if not successFlag:
-        returnJson["msg"] = "Can't get data"
-        return returnJson
+    if not success_flag:
+        return_json["msg"] = "Can't get data"
+        return return_json
 
-    returnJson["success"] = 1
-    returnJson["data"] = result
-    return returnJson
+    return_json["success"] = 1
+    return_json["data"] = result
+    return return_json
 
 
-@clothingClass.route("/", methods=["POST"])
+@clothing_class.route("/", methods=["POST"])
 def create_clothing_class():
     data = request.get_json()
 
-    parentClass = data["parentClass"]
-    subClass = data["subClass"]
+    parent_class = data["parentClass"]
+    sub_class = data["subClass"]
 
     token = request.headers.get("Authorization").replace("Bearer ", "")
 
-    returnJson = {"success": 0, "msg": ""}
+    return_json = {"success": 0, "msg": ""}
 
     """
     Check jwt token and get info of it
     """
-    tokenParseResult = check_jwt_token_and_get_info(token, checkIsAdmin=True)
+    tokenParseResult = check_jwt_token_and_get_info(token, check_is_admin=True)
 
     if not tokenParseResult["success"]:
-        returnJson["msg"] = tokenParseResult["msg"]
-        return returnJson
+        return_json["msg"] = tokenParseResult["msg"]
+        return return_json
 
     """
     Check input format
     """
     validator = Validator()
-    validator.required([parentClass, subClass])
-    validator.check_clothing_parent_class(parentClass)
-    validator.check_clothing_sub_class(subClass)
+    validator.required([parent_class, sub_class])
+    validator.check_clothing_parent_class(parent_class)
+    validator.check_clothing_sub_class(sub_class)
     errors = validator.get_errors()
 
     if len(errors) != 0:
-        returnJson["msg"] = errors[0]
-        return returnJson
+        return_json["msg"] = errors[0]
+        return return_json
 
     """
     Insert Clothing class to database
     """
-    with TransactionExecutor() as transactionExecutor:
+    with TransactionExecutor() as transaction_executor:
         """
         Check whether class composition have already been used
         """
-        successFlag, result = transactionExecutor.query_sql(
-            "SELECT * from ClothingClass WHERE binary class = %(class)s and binary subClass = %(subClass)s",
-            {"class": parentClass, "subClass": subClass},
-            fetchOne=True,
+        success_flag, result = transaction_executor.query_sql(
+            "SELECT * from ClothingClass WHERE binary class = %(class)s and binary subClass = %(sub_class)s",
+            {"class": parent_class, "sub_class": sub_class},
+            fetch_one=True,
         )
 
-        if successFlag:
+        if success_flag:
             if result != None:
-                returnJson["msg"] = "Class composition already been used"
-                return returnJson
+                return_json["msg"] = "Class composition already been used"
+                return return_json
         else:
-            returnJson["msg"] = "server error"
-            return returnJson
+            return_json["msg"] = "server error"
+            return return_json
 
         insertString = "INSERT INTO ClothingClass(class, subClass) \
-            values (%(class)s, %(subClass)s)"
-        successFlag = transactionExecutor.execute_sql(
+            values (%(class)s, %(sub_class)s)"
+        success_flag = transaction_executor.execute_sql(
             insertString,
             {
-                "class": parentClass,
-                "subClass": subClass,
+                "class": parent_class,
+                "sub_class": sub_class,
             },
         )
-        if not successFlag:
-            returnJson["msg"] = "Server error"
-            return returnJson
+        if not success_flag:
+            return_json["msg"] = "Server error"
+            return return_json
 
-        if not transactionExecutor.commit():
-            returnJson["msg"] = "SQL Insert error"
-            return returnJson
+        if not transaction_executor.commit():
+            return_json["msg"] = "SQL Insert error"
+            return return_json
 
-    returnJson["success"] = 1
-    return returnJson
+    return_json["success"] = 1
+    return return_json

@@ -65,8 +65,8 @@ def get_order_own_by_email():
 
     with TransactionExecutor() as transaction_executor:
         success_flag, result = transaction_executor.query_sql(
-            "SELECT _ID, cost, name, address, phone, done, isDeleted, clothingID, size, count FROM \
-                (SELECT _ID, email, cost, name, address, phone, done, isDeleted FROM Orders order by _ID DESC limit %(recent_count)s) as TopOrders INNER JOIN OrderClothingDetail\
+            "SELECT _ID, cost, name, address, phone, status, isDeleted, clothingID, size, count FROM \
+                (SELECT _ID, email, cost, name, address, phone, status, isDeleted FROM Orders order by _ID DESC limit %(recent_count)s) as TopOrders INNER JOIN OrderClothingDetail\
                  ON TopOrders._ID = OrderClothingDetail.orderID WHERE email = %(email)s order by _ID DESC",
             {"recent_count": recent_count, "email": order_email},
         )
@@ -96,7 +96,7 @@ def get_order_own_by_email():
                     "name": result[i][2],
                     "address": result[i][3],
                     "phone": result[i][4],
-                    "done": result[i][5],
+                    "status": result[i][5],
                     "isDeleted": result[i][6],
                     "clothing": clothing,
                 }

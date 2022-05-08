@@ -14,8 +14,11 @@ connection = pymysql.connect(
 
 cursor = connection.cursor()
 
-
+cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
+connection.commit()
 cursor.execute("DROP TABLE IF EXISTS Users;")
+connection.commit()
+cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
 connection.commit()
 
 cursor.execute(
@@ -86,7 +89,7 @@ cursor.execute(
     name varchar(40) NOT NULL, \
     address varchar(100) NOT NULL,\
     phone varchar(20) NOT NULL,\
-    done bool DEFAULT FALSE,\
+    status varchar(20) DEFAULT ('wait pay'),\
     isDeleted bool DEFAULT FALSE,\
     PRIMARY KEY (_ID),\
     FOREIGN KEY OrdersAndUserForeignKey (email) REFERENCES Users(email));"
@@ -107,7 +110,7 @@ cursor.execute(
     clothingID int(8) NOT NULL,\
     size varchar(10),\
     count int(8) NOT NULL,\
-    PRIMARY KEY (orderID, clothingID),\
+    PRIMARY KEY (orderID, clothingID, size),\
     FOREIGN KEY ClothingForeignKey (clothingID) REFERENCES Clothing(_ID),\
     FOREIGN KEY OrderForeignKey (orderID) REFERENCES Orders(_ID));"
 )

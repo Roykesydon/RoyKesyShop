@@ -11,13 +11,12 @@ from utils.validator import Validator
 
 clothing_class = Blueprint("clothing_class", __name__)
 
-"""
-Get all parent clothing classes with their sub classes
-"""
-
 
 @clothing_class.route("/", methods=["GET"])
 def get_all_classes():
+    """
+    Get all parent clothing classes with their sub classes
+    """
     return_json = {"success": 0, "msg": "", "data": None}
 
     with TransactionExecutor() as transaction_executor:
@@ -111,10 +110,10 @@ def create_clothing_class():
     """
     Check jwt token and get info of it
     """
-    tokenParseResult = check_jwt_token_and_get_info(token, check_is_admin=True)
+    token_parse_result = check_jwt_token_and_get_info(token, check_is_admin=True)
 
-    if not tokenParseResult["success"]:
-        return_json["msg"] = tokenParseResult["msg"]
+    if not token_parse_result["success"]:
+        return_json["msg"] = token_parse_result["msg"]
         return return_json
 
     """

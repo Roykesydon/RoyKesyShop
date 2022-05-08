@@ -36,13 +36,15 @@ def index():
     return_json["data"] = result
     return return_json
 
+
 @clothing.route("/<int:id>", methods=["GET"])
-def get_clothing_by_id():
+def get_clothing_by_id(id):
     return_json = {"success": 0, "msg": "", "data": None}
     with TransactionExecutor() as transaction_executor:
         success_flag, result = transaction_executor.query_sql(
-            "SELECT _ID, title, cost, imageExtension, sizes from Clothing WHERE isDeleted = false and _ID = %(clohting_id)s",
+            "SELECT _ID, title, cost, imageExtension, sizes, class, subClass, description from Clothing WHERE isDeleted = false and _ID = %(clothing_id)s",
             {"clothing_id": id},
+            fetch_one=True,
         )
     if not success_flag:
         return_json["msg"] = "Can't get data"
@@ -51,6 +53,7 @@ def get_clothing_by_id():
     return_json["success"] = 1
     return_json["data"] = result
     return return_json
+
 
 @clothing.route("/search/<string:keyword>", methods=["GET"])
 def search_by_keyword(keyword):

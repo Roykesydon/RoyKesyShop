@@ -7,6 +7,10 @@ class Validator:
     def __init__(self):
         self._errors = []
 
+    """
+    regular
+    """
+
     def required(self, params):
         if len([x for x in params if x is None]) > 0:
             self._errors.append("Information is incomplete")
@@ -15,6 +19,10 @@ class Validator:
         if re.match("^[A-Za-z0-9]*$", str):
             return True
         return False
+
+    """
+    User
+    """
 
     def check_email(self, input, letterNumberOnly=False):
         if letterNumberOnly == True and self.is_letter_number_only(input) == False:
@@ -37,6 +45,10 @@ class Validator:
 
         if input is None or len(input) < 6 or len(input) > 30:
             self._errors.append("Password format is wrong")
+
+    """
+    Clothing
+    """
 
     def check_clothing_title(self, input):
         if input is None or len(input) < 2 or len(input) > 50:
@@ -77,6 +89,32 @@ class Validator:
     def check_clothing_sub_class(self, input):
         if input is None or len(input) < 1 or len(input) > 25:
             self._errors.append("Sub clothing class format is wrong")
+
+    """
+    Order
+    """
+
+    def check_address(self, input):
+        if input is None or len(input) < 1 or len(input) > 100:
+            self._errors.append("Address format is wrong")
+
+    def check_phone(self, input):
+        if input is None or len(input) < 1 or len(input) > 20:
+            self._errors.append("Phone format is wrong")
+
+    def check_name(self, input):
+        if input is None or len(input) < 1 or len(input) > 40:
+            self._errors.append("Name format is wrong")
+
+    def check_clothing(self, input):
+        if input is None or len(input) == 0:
+            self._errors.append("Clothing format is wrong")
+            return
+
+        for item in input.split(","):
+            if len(item.split("-")) != 3:
+                self._errors.append("Clothing format is wrong")
+                return
 
     def get_errors(self):
         return self._errors

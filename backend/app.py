@@ -1,11 +1,13 @@
 from flask import Blueprint, Flask
 
+import utils.connection_pool as connection_pool
 from clothing.api import clothing
 from clothing_class.api import clothing_class
 from order.api import order
 from user.api import user
 
 app = Flask(__name__)
+connection_pool.init()
 
 
 @app.route("/")

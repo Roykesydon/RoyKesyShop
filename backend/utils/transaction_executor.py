@@ -1,21 +1,16 @@
 from multiprocessing import connection
 
 import pymysql
+from dbutils.pooled_db import PooledDB
+
+import utils.connection_pool as connection_pool
 
 from .config import get_config
 
 
 class TransactionExecutor:
     def __enter__(self):
-        config = get_config()
-        self.connection = pymysql.connect(
-            host=str(config["db"]["host"]),
-            user=str(config["db"]["user"]),
-            password=str(config["db"]["password"]),
-            db=str(config["db"]["database"]),
-            charset="utf8",
-            autocommit=False,
-        )
+        self.connection = connection_pool.connection_pool.connection()
         return self
 
     def __exit__(self, type, value, traceback):

@@ -1,0 +1,397 @@
+<template>
+  <v-card flat class="pa-10" style="height: 70vh">
+    <v-dialog v-model="dialog" persistent width="50vw" height="70vh">
+      <v-card width="50vw" height="70vh" class="pa-10" style="overflow: auto">
+        <loading
+          :active.sync="detailLoading"
+          :can-cancel="false"
+          :is-full-page="false"
+          :color="$vuetify.theme.currentTheme.primary"
+          :background-color="$vuetify.theme.currentTheme.customBackground"
+        ></loading>
+        <v-layout align-center>
+          <span class="text-h3 font-weight-thin mr-5">
+            Order {{ detail.order_id }}
+          </span>
+          <v-chip
+            v-if="detail.status != 'done' && detail.isDeleted != 1"
+            class="info"
+          >
+            Processing
+          </v-chip>
+          <v-chip
+            v-if="detail.status == 'done' && detail.isDeleted != 1"
+            class="success"
+          >
+            Complete
+          </v-chip>
+          <v-chip v-if="detail.isDeleted == 1" class="error"> Deleted </v-chip>
+        </v-layout>
+        <v-divider class="my-5"></v-divider>
+        <v-row>
+          <v-col cols="3">
+            <div class="text-h5 font-weight-thin">Address</div>
+          </v-col>
+          <v-col cols="9">
+            <div class="text-h5 font-weight-thin">
+              :
+              {{ detail.address }}
+            </div>
+          </v-col>
+        </v-row>
+
+        <v-row>
+          <v-col cols="3">
+            <div class="text-h5 font-weight-thin">Name</div>
+          </v-col>
+          <v-col cols="9">
+            <div class="text-h5 font-weight-thin">
+              :
+              {{ detail.name }}
+            </div>
+          </v-col>
+        </v-row>
+
+        <v-row>
+          <v-col cols="3">
+            <div class="text-h5 font-weight-thin">Phone</div>
+          </v-col>
+          <v-col cols="9">
+            <div class="text-h5 font-weight-thin">
+              :
+              {{ detail.phone }}
+            </div>
+          </v-col>
+        </v-row>
+
+        <v-row>
+          <v-col cols="3">
+            <div class="text-h5 font-weight-thin">Cost</div>
+          </v-col>
+          <v-col cols="9">
+            <div class="text-h5 font-weight-thin">
+              :
+              {{ detail.cost }}
+            </div>
+          </v-col>
+        </v-row>
+
+        <v-row>
+          <v-col cols="3">
+            <div class="text-h5 font-weight-thin">Status</div>
+          </v-col>
+          <v-col cols="9">
+            <div class="text-h5 font-weight-thin">
+              :
+              {{ detail.status }}
+            </div>
+          </v-col>
+        </v-row>
+
+        <v-row>
+          <v-col cols="3">
+            <div class="text-h5 font-weight-thin">Clothing</div>
+          </v-col>
+          <v-col cols="9">
+            <div class="text-h5 font-weight-thin">:</div>
+            <div class="pa-5">
+              <div v-for="(item, index) in detail.clothing" :key="index">
+                <v-row align="center" justify="center">
+                  <v-col cols="2">
+                    <v-layout align-center>
+                      <v-img
+                        :src="item.imageSrc"
+                        height="10vh"
+                        width="10vh"
+                      ></v-img>
+                    </v-layout>
+                  </v-col>
+                  <v-col cols="8">
+                    <div class="text-h5 font-weight-thin">
+                      {{ item.title }}
+                    </div>
+                    <div class="text-h5 font-weight-thin">
+                      $ {{ item.cost }}
+                    </div>
+                  </v-col>
+                  <v-col cols="2">
+                    <v-btn> Detail</v-btn>
+                  </v-col>
+                </v-row>
+
+                {{ item }}
+              </div>
+            </div>
+          </v-col>
+        </v-row>
+
+        {{ detail }}
+        <v-btn color="green darken-1" text @click="dialog = false">
+          close
+        </v-btn>
+      </v-card>
+    </v-dialog>
+    <v-row>
+      <loading
+        :active.sync="isLoading"
+        :can-cancel="false"
+        :is-full-page="false"
+        :color="$vuetify.theme.currentTheme.primary"
+        :background-color="$vuetify.theme.currentTheme.customBackground"
+      ></loading>
+      <v-col cols="6" class="pr-5">
+        <v-card height="100%" class="grey darken-3 pa-5">
+          <v-card flat style="overflow: auto; height: 50vh" class="pa-5">
+            <div class="text-h4 font-weight-thin mb-4">Order List</div>
+            <v-divider class="mb-5"></v-divider>
+            <div v-for="(item, i) in items" :key="i">
+              <v-layout justify-space-between>
+                <div class="text-h5 font-weight-thin" style="width: 10vw">
+                  {{ item.order_id }}
+                </div>
+                <div class="text-h5 font-weight-thin" style="width: 10vw">
+                  {{ item.status }}
+                </div>
+                <div style="width: 15vw">
+                  <v-layout justify-space-between align-center>
+                    <div
+                      v-if="item.status != 'done' && item.isDeleted != 1"
+                      class="info text-center"
+                      style="width: 7vw; height: 1.5em; border-radius: 0.25em"
+                    >
+                      Processing
+                    </div>
+                    <div
+                      v-if="item.status == 'done'"
+                      class="success text-center"
+                      style="width: 7vw; height: 1.5em; border-radius: 0.25em"
+                    >
+                      Complete
+                    </div>
+                    <div
+                      v-if="item.isDeleted == 1"
+                      class="error text-center"
+                      style="width: 7vw; height: 1.5em; border-radius: 0.25em"
+                    >
+                      Deleted
+                    </div>
+                    <v-btn color="secondary" text @click="openDetail(i)">
+                      Detail
+                    </v-btn>
+                  </v-layout>
+                </div>
+              </v-layout>
+              <div>
+                <v-divider class="my-3"></v-divider>
+              </div>
+            </div>
+          </v-card>
+        </v-card>
+      </v-col>
+
+      <v-divider vertical></v-divider>
+
+      <v-col cols="6" class="pl-5" style="overflow: auto; height: 60vh">
+        <v-form ref="orderForm" v-model="orderFormValid" lazy-validation>
+          <h3 class="font-weight-thin">User Email</h3>
+          <v-text-field v-model="email" outlined counter="50"></v-text-field>
+
+          <h3 class="font-weight-thin">Most Recent Count</h3>
+          <v-text-field
+            v-model="recentCount"
+            outlined
+            :rules="[rules.required]"
+            counter="50"
+          ></v-text-field>
+
+          <div>
+            <v-layout justify-center>
+              <v-checkbox v-model="inProgress">
+                <template #label>
+                  <div class="text-h5 font-weight-thin">In progress</div>
+                </template>
+              </v-checkbox>
+            </v-layout>
+          </div>
+          <div>
+            <v-layout justify-center>
+              <v-checkbox v-model="done">
+                <template #label>
+                  <div class="text-h5 font-weight-thin">Done</div>
+                </template>
+              </v-checkbox>
+            </v-layout>
+          </div>
+
+          <div>
+            <v-layout justify-center>
+              <v-checkbox v-model="deleted">
+                <template #label>
+                  <div class="text-h5 font-weight-thin">Deleted</div>
+                </template>
+              </v-checkbox>
+            </v-layout>
+          </div>
+          <div class="d-flex justify-end">
+            <v-btn outlined color="primary" x-large @click="wantToSubmit()">
+              Search
+            </v-btn>
+          </div>
+        </v-form>
+      </v-col>
+    </v-row>
+  </v-card>
+</template>
+
+<script>
+import { rules } from "@/jsLibrary/rules.js";
+import { sendNormalRequest } from "@/jsLibrary/request.js";
+import { apiAddress } from "@/config.js";
+
+import Loading from "vue-loading-overlay";
+import "vue-loading-overlay/dist/vue-loading.css";
+
+export default {
+  name: "ManageOrders",
+
+  components: {
+    Loading,
+  },
+
+  data: () => ({
+    previewImage: "",
+
+    email: "",
+    recentCount: 150,
+
+    dialog: false,
+
+    inProgress: true,
+    done: true,
+    deleted: true,
+
+    items: [],
+
+    rules: rules,
+
+    orderFormValid: false,
+    isLoading: false,
+    detailLoading: false,
+
+    detail: {},
+  }),
+
+  async mounted() {
+    this.isLoading = true;
+    await this.getListWithoutEmail();
+    this.isLoading = false;
+  },
+
+  methods: {
+    openDetail: async function (index) {
+      this.detailLoading = true;
+      this.dialog = true;
+      this.detail = this.items[index];
+      this.detail.clothing = this.detail.clothing.split(",");
+      for (let i = 0; i < this.detail.clothing.length; i++) {
+        let result = this.detail.clothing[i].split("-");
+        let clothingId = result[0];
+        let size = result[1];
+        let count = result[2];
+        await sendNormalRequest(
+          this,
+          "get",
+          "/clothing/" + clothingId,
+          {},
+          {},
+          false,
+          "",
+          "data"
+        ).then((data) => {
+          this.detail.clothing[i] = {};
+          console.log(data);
+          this.detail.clothing[i].title = data[1];
+
+          this.detail.clothing[i].cost = data[2];
+          this.detail.clothing[i].cost = parseFloat(
+            this.detail.clothing[i].cost
+          ).toFixed(2);
+
+          this.detail.clothing[i].clothingId = clothingId;
+          this.detail.clothing[i].imageExtension = data[3];
+          this.detail.clothing[i].supportSizes = data[4].split(",");
+          this.detail.clothing[i].parentClass = data[5];
+          this.detail.clothing[i].subClass = data[6];
+          this.detail.clothing[i].description = data[7];
+
+          console.log(this.detail.clothing[i].description);
+
+          this.detail.clothing[i].imageSrc =
+            apiAddress +
+            "/clothing/image/" +
+            String(this.detail.clothing[i].clothingId) +
+            "." +
+            this.detail.clothing[i].imageExtension;
+
+          this.detail.clothing[i].size = size;
+          this.detail.clothing[i].count = count;
+        });
+      }
+      this.detailLoading = false;
+    },
+
+    getListWithEmail: async function () {
+      await sendNormalRequest(
+        this,
+        "post",
+        "/order/with_email",
+        {
+          email: this.email,
+          recentCount: this.recentCount,
+        },
+        {},
+        true,
+        "",
+        "data"
+      )
+        .then((result) => {
+          console.log(result);
+          this.items = result;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+
+    getListWithoutEmail: async function () {
+      await sendNormalRequest(
+        this,
+        "get",
+        "/order/",
+        {},
+        {
+          recent_count: this.recentCount,
+        },
+        true,
+        "",
+        "data"
+      )
+        .then((data) => {
+          this.items = data;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+
+    wantToSubmit: async function () {
+      if (this.$refs.orderForm.validate() == false) return;
+      this.isLoading = true;
+      if (this.email != "") await this.getListWithEmail();
+      else await this.getListWithoutEmail();
+
+      this.isLoading = false;
+    },
+  },
+};
+</script>

@@ -18,7 +18,60 @@ def get_all_order():
     """
     Admin can use this API to get recent record of order information
     """
-    recent_count = request.args.get("recent_count", default=500, type=int)
+    recent_count = request.args.get("recent_count", default=150, type=int)
+    token = request.headers.get("Authorization").replace("Bearer ", "")
+
+    """
+    Check jwt token and get email of it
+    """
+    token_parse_result = check_jwt_token_and_get_info(token, check_is_admin=True)
+    if not token_parse_result["success"]:
+        return_json["msg"] = token_parse_result["msg"]
+        return return_json
+
+
+    return_json = {"success": 0, "msg": "", "data": None}
+
+    with TransactionExecutor() as transaction_executor:
+        success_flag, result = transaction_executor.query_sql(
+            "SELECT _ID, cost, name, address, phone, status, isDeleted, clothingID, size, count FROM \
+                (SELECT _ID, email, cost, name, address, phone, status, isDeleted FROM Orders order by _ID DESC limit %(recent_count)s) as TopOrders INNER JOIN OrderClothingDetail\
+                 ON TopOrders._ID = OrderClothingDetail.orderID order by _ID DESC",
+            {"recent_count": recent_count},
+        )
+        if not success_flag:
+            return_json["msg"] = "Can't get data"
+            return return_json
+
+        orders = []
+        previous_order_id = None
+        for i in range(len(result)):
+            clothing = (
+                str(result[i][7]) + "-" + str(result[i][8]) + "-" + str(result[i][9])
+            )
+
+            if result[i][0] == previous_order_id:
+                orders[-1]["clothing"] += "," + clothing
+                continue
+
+            previous_order_id = result[i][0]
+
+            orders.append(
+                {
+                    "order_id": result[i][0],
+                    "cost": result[i][1],
+                    "name": result[i][2],
+                    "address": result[i][3],
+                    "phone": result[i][4],
+                    "status": result[i][5],
+                    "isDeleted": result[i][6],
+                    "clothing": clothing,
+                }
+            )
+
+    return_json["success"] = 1
+    return_json["data"] = orders
+    return return_json
 
 
 @order.route("/with_email", methods=["POST"])
@@ -66,8 +119,8 @@ def get_order_own_by_email():
     with TransactionExecutor() as transaction_executor:
         success_flag, result = transaction_executor.query_sql(
             "SELECT _ID, cost, name, address, phone, status, isDeleted, clothingID, size, count FROM \
-                (SELECT _ID, email, cost, name, address, phone, status, isDeleted FROM Orders order by _ID DESC limit %(recent_count)s) as TopOrders INNER JOIN OrderClothingDetail\
-                 ON TopOrders._ID = OrderClothingDetail.orderID WHERE email = %(email)s order by _ID DESC",
+                (SELECT _ID, email, cost, name, address, phone, status, isDeleted FROM Orders WHERE email = %(email)s order by _ID DESC limit %(recent_count)s) as TopOrders INNER JOIN OrderClothingDetail\
+                 ON TopOrders._ID = OrderClothingDetail.orderID order by _ID DESC",
             {"recent_count": recent_count, "email": order_email},
         )
         if not success_flag:

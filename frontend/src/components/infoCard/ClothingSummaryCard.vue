@@ -22,9 +22,6 @@
             >
               mdi-magnify
             </v-icon>
-            <v-icon class="ml-5" @click="addToCart(item['_ID'])">
-              mdi-cart
-            </v-icon>
           </v-layout>
         </v-overlay>
       </v-img>
@@ -71,19 +68,7 @@ export default {
   },
 
   mounted() {},
-  methods: {
-    addToCart: function (_ID) {
-      // console.log(JSON.parse(this.$cookies.get("cartItems")));
-      if (this.$cookies.isKey("cartItems") == false)
-        this.$cookies.set("cartItems", String(_ID));
-      else {
-        this.$cookies.set(
-          "cartItems",
-          this.$cookies.get("cartItems") + "," + String(_ID)
-        );
-      }
-    },
-  },
+  methods: {},
 };
 </script>
 

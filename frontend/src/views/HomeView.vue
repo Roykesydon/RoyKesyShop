@@ -26,6 +26,7 @@ export default {
   name: "HomeView",
 
   data: () => ({
+    icons: ["mdi-facebook", "mdi-twitter", "mdi-linkedin", "mdi-instagram"],
     items: [
       {
         src: "https://cdn.vuetifyjs.com/images/carousel/squirrel.jpg",

@@ -3,7 +3,7 @@
     <v-toolbar flat color="primaryDark" dark>
       <v-toolbar-title>Admin Dashboard</v-toolbar-title>
     </v-toolbar>
-    <v-tabs vertical class="mt-10">
+    <v-tabs vertical class="mt-10" color="secondary">
       <v-tab>
         <v-icon left> mdi-table </v-icon>
         Add clothing class
@@ -15,13 +15,13 @@
       </v-tab>
       <v-divider></v-divider>
       <v-tab>
-        <v-icon left> mdi-text-box-multiple-outline </v-icon>
-        Update clothing
+        <v-icon left> mdi-truck-minus-outline </v-icon>
+        Manage orders
       </v-tab>
       <v-divider></v-divider>
       <v-tab>
-        <v-icon left> mdi-truck-minus-outline </v-icon>
-        check orders
+        <v-icon left> mdi-text-box-multiple-outline </v-icon>
+        Update clothing
       </v-tab>
       <v-divider></v-divider>
       <v-tab>
@@ -32,7 +32,9 @@
       <!-- Add clothing -->
       <v-tab-item><update-clothing-class /> </v-tab-item>
       <v-tab-item><add-clothing /> </v-tab-item>
-
+      <v-tab-item>
+        <manage-orders />
+      </v-tab-item>
       <v-tab-item>
         <v-card flat>
           <v-card-text>
@@ -79,19 +81,7 @@
       <v-tab-item>
         <v-card flat>
           <v-card-text>
-            <p>
-              Fusce a quam. Phasellus nec sem in justo pellentesque facilisis.
-              Nam eget dui. Proin viverra, ligula sit amet ultrices semper,
-              ligula arcu tristique sapien, a accumsan nisi mauris ac eros. In
-              dui magna, posuere eget, vestibulum et, tempor auctor, justo.
-            </p>
-
-            <p class="mb-0">
-              Cras sagittis. Phasellus nec sem in justo pellentesque facilisis.
-              Proin sapien ipsum, porta a, auctor quis, euismod ut, mi. Donec
-              quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nam
-              at tortor in tellus interdum sagittis.
-            </p>
+            <p>Ban users</p>
           </v-card-text>
         </v-card>
       </v-tab-item>
@@ -102,12 +92,14 @@
 <script>
 import AddClothing from "@/components/adminDashboard/AddClothing.vue";
 import UpdateClothingClass from "@/components/adminDashboard/UpdateClothingClass.vue";
+import ManageOrders from "@/components/adminDashboard/ManageOrders.vue";
 
 export default {
   name: "DashboardView",
   components: {
     AddClothing,
     UpdateClothingClass,
+    ManageOrders,
   },
 
   data: () => ({ previewImage: false }),

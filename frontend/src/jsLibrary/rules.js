@@ -56,4 +56,16 @@ export const rules = {
       "Must be between 1-25 characters"
     );
   },
+  buyCount: (v) => {
+    return (v != null && v >= 1 && v <= 500) || "Must be between 1-500";
+  },
+  name: (v) => {
+    return (v != null && v.length <= 40) || "Input at most 40 characters";
+  },
+  address: (v) => {
+    return (v != null && v.length <= 100) || "Input at most 100 characters";
+  },
+  phone: (v) => {
+    return (v != null && v.length <= 20) || "Input at most 20 characters";
+  },
 };

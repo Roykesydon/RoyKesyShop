@@ -55,7 +55,7 @@
         <v-icon>mdi-server</v-icon>
       </v-btn>
 
-      <v-btn text class="mx-1">
+      <v-btn text class="mx-1" @click="$router.push({ path: '/cart' })">
         <v-icon>mdi-cart</v-icon>
         <span>({{ cartItemCount }})</span>
       </v-btn>
@@ -85,10 +85,18 @@ export default {
   computed: {
     cartItemCount: {
       get() {
-        if (this.$cookies.isKey("cartItems") == false) {
+        if (
+          this.$cookies.isKey("cartItems") == false ||
+          this.$cookies.get("cartItems") == ""
+        ) {
           return "0";
         } else {
-          return String(this.$cookies.get("cartItems")).split(",").length;
+          let items = String(this.$cookies.get("cartItems")).split(",");
+          let count = 0;
+
+          for (let item of items) count += parseInt(item.split("-")[2]);
+
+          return count;
         }
       },
     },

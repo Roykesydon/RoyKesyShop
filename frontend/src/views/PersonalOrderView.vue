@@ -312,7 +312,7 @@ export default {
 
     needNextStepButton: function () {
       if (this.detail.isDeleted) return false;
-      let items = ["wait pay"];
+      let items = ["delivering"];
       for (let item of items) {
         if (this.detail.status == item) return true;
       }

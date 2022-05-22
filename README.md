@@ -9,10 +9,6 @@ A project composed of nginx + vue + flask + mariadb, the project is for practice
     
 1. If you're not using docker with wsl2, you might need to change 
     ```
-    upstream frontend{
-        server host.docker.internal:8080;
-    }
-
     upstream backend{
         server host.docker.internal:5000;
     }

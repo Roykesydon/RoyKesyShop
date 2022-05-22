@@ -1,6 +1,6 @@
 <template>
   <v-card flat class="pa-10" style="height: 70vh">
-    <v-dialog v-model="dialog" persistent width="50vw" height="70vh">
+    <v-dialog v-model="dialog" width="50vw" height="70vh">
       <v-card width="50vw" height="70vh" class="pa-10" style="overflow: auto">
         <loading
           :active.sync="detailLoading"
@@ -10,24 +10,42 @@
           :background-color="$vuetify.theme.currentTheme.customBackground"
         ></loading>
         <v-layout align-center>
-          <span class="text-h3 font-weight-thin mr-5">
-            Order {{ detail.order_id }}
+          <span class="white--text">
+            <span class="text-h3 font-weight-thin mr-5">
+              Order {{ detail.order_id }}
+            </span>
+            <v-chip
+              v-if="detail.status != 'done' && detail.isDeleted != 1"
+              class="info"
+            >
+              Processing
+            </v-chip>
+            <v-chip
+              v-if="detail.status == 'done' && detail.isDeleted != 1"
+              class="success"
+            >
+              Complete
+            </v-chip>
+
+            <v-chip v-if="detail.isDeleted == 1" class="error">
+              Deleted
+            </v-chip>
           </span>
-          <v-chip
-            v-if="detail.status != 'done' && detail.isDeleted != 1"
-            class="info"
-          >
-            Processing
-          </v-chip>
-          <v-chip
-            v-if="detail.status == 'done' && detail.isDeleted != 1"
-            class="success"
-          >
-            Complete
-          </v-chip>
-          <v-chip v-if="detail.isDeleted == 1" class="error"> Deleted </v-chip>
         </v-layout>
         <v-divider class="my-5"></v-divider>
+        <v-row align="center">
+          <v-col cols="3">
+            <div class="text-h5 font-weight-thin">Status</div>
+          </v-col>
+          <v-col cols="9">
+            <div class="text-h5 font-weight-thin">
+              :
+              <span class="primary--text text-h4">{{
+                statusMapping(detail.status)
+              }}</span>
+            </div>
+          </v-col>
+        </v-row>
         <v-row>
           <v-col cols="3">
             <div class="text-h5 font-weight-thin">Address</div>
@@ -70,8 +88,7 @@
           </v-col>
           <v-col cols="9">
             <div class="text-h5 font-weight-thin">
-              :
-              {{ detail.cost }}
+              : $ &nbsp; {{ detail.cost }}
             </div>
           </v-col>
         </v-row>
@@ -106,29 +123,53 @@
                       ></v-img>
                     </v-layout>
                   </v-col>
-                  <v-col cols="8">
+                  <v-col cols="10">
                     <div class="text-h5 font-weight-thin">
-                      {{ item.title }}
+                      {{ item.parentClass }}/{{ item.subClass }}/{{
+                        item.title
+                      }}
                     </div>
                     <div class="text-h5 font-weight-thin">
-                      $ {{ item.cost }}
+                      $ &nbsp; {{ item.cost }}
                     </div>
-                  </v-col>
-                  <v-col cols="2">
-                    <v-btn> Detail</v-btn>
+                    <div class="text-h5 font-weight-thin">
+                      Size: {{ item.size }}
+                    </div>
+                    <div class="text-h5 font-weight-thin">
+                      Count: {{ item.count }}
+                    </div>
                   </v-col>
                 </v-row>
-
-                {{ item }}
+                <v-divider class="my-2"></v-divider>
               </div>
             </div>
           </v-col>
         </v-row>
+        <v-row justify="end">
+          <v-btn
+            v-if="detail.isDeleted != true"
+            outlined
+            elevation="0"
+            x-large
+            color="error"
+            class=""
+            @click="deleteOrder()"
+          >
+            Delete order
+          </v-btn>
 
-        {{ detail }}
-        <v-btn color="green darken-1" text @click="dialog = false">
-          close
-        </v-btn>
+          <v-btn
+            v-if="needNextStepButton()"
+            outlined
+            elevation="0"
+            x-large
+            color="secondary"
+            class="ml-5"
+            @click="updateOrder()"
+          >
+            {{ statusButtonMessage(detail.status) }}
+          </v-btn>
+        </v-row>
       </v-card>
     </v-dialog>
     <v-row>
@@ -145,44 +186,58 @@
             <div class="text-h4 font-weight-thin mb-4">Order List</div>
             <v-divider class="mb-5"></v-divider>
             <div v-for="(item, i) in items" :key="i">
-              <v-layout justify-space-between>
-                <div class="text-h5 font-weight-thin" style="width: 10vw">
-                  {{ item.order_id }}
+              <div
+                v-show="
+                  !(
+                    (item.status != 'done' &&
+                      item.isDeleted != 1 &&
+                      inProgress != true) ||
+                    (item.isDeleted == 1 && deleted != true) ||
+                    (item.status == 'done' &&
+                      item.isDeleted != 1 &&
+                      done != true)
+                  )
+                "
+              >
+                <v-layout justify-space-between>
+                  <div class="text-h5 font-weight-thin" style="width: 10vw">
+                    {{ item.order_id }}
+                  </div>
+                  <div class="text-h5 font-weight-thin" style="width: 10vw">
+                    {{ item.status }}
+                  </div>
+                  <div style="width: 15vw" class="white--text">
+                    <v-layout justify-space-between align-center>
+                      <div
+                        v-if="item.status != 'done' && item.isDeleted != 1"
+                        class="info text-center"
+                        style="width: 7vw; height: 1.5em; border-radius: 0.25em"
+                      >
+                        Processing
+                      </div>
+                      <div
+                        v-if="item.status == 'done' && item.isDeleted != 1"
+                        class="success text-center"
+                        style="width: 7vw; height: 1.5em; border-radius: 0.25em"
+                      >
+                        Complete
+                      </div>
+                      <div
+                        v-if="item.isDeleted == 1"
+                        class="error text-center"
+                        style="width: 7vw; height: 1.5em; border-radius: 0.25em"
+                      >
+                        Deleted
+                      </div>
+                      <v-btn color="secondary" text @click="openDetail(i)">
+                        Detail
+                      </v-btn>
+                    </v-layout>
+                  </div>
+                </v-layout>
+                <div>
+                  <v-divider class="my-3"></v-divider>
                 </div>
-                <div class="text-h5 font-weight-thin" style="width: 10vw">
-                  {{ item.status }}
-                </div>
-                <div style="width: 15vw">
-                  <v-layout justify-space-between align-center>
-                    <div
-                      v-if="item.status != 'done' && item.isDeleted != 1"
-                      class="info text-center"
-                      style="width: 7vw; height: 1.5em; border-radius: 0.25em"
-                    >
-                      Processing
-                    </div>
-                    <div
-                      v-if="item.status == 'done'"
-                      class="success text-center"
-                      style="width: 7vw; height: 1.5em; border-radius: 0.25em"
-                    >
-                      Complete
-                    </div>
-                    <div
-                      v-if="item.isDeleted == 1"
-                      class="error text-center"
-                      style="width: 7vw; height: 1.5em; border-radius: 0.25em"
-                    >
-                      Deleted
-                    </div>
-                    <v-btn color="secondary" text @click="openDetail(i)">
-                      Detail
-                    </v-btn>
-                  </v-layout>
-                </div>
-              </v-layout>
-              <div>
-                <v-divider class="my-3"></v-divider>
               </div>
             </div>
           </v-card>
@@ -247,6 +302,7 @@
 import { rules } from "@/jsLibrary/rules.js";
 import { sendNormalRequest } from "@/jsLibrary/request.js";
 import { apiAddress } from "@/config.js";
+import { statusMapping } from "@/jsLibrary/textTransform.js";
 
 import Loading from "vue-loading-overlay";
 import "vue-loading-overlay/dist/vue-loading.css";
@@ -288,10 +344,65 @@ export default {
   },
 
   methods: {
+    deleteOrder: async function () {
+      await sendNormalRequest(
+        this,
+        "delete",
+        "/order",
+        {
+          order_id: this.detail.order_id,
+        },
+        {},
+        true,
+        "Successfully delete order",
+        "data"
+      ).then(() => {
+        this.detail.isDeleted = true;
+        this.items[this.detail.index].isDeleted = true;
+        this.detail = Object.assign({}, this.detail);
+      });
+    },
+
+    updateOrder: async function () {
+      await sendNormalRequest(
+        this,
+        "put",
+        "/order/status",
+        {
+          order_id: this.detail.order_id,
+        },
+        {},
+        true,
+        "Successfully update order status",
+        "data"
+      ).then((data) => {
+        this.detail.status = data.new_status;
+        this.items[this.detail.index].status = data.new_status;
+      });
+    },
+    statusButtonMessage: function (status) {
+      let returnMsg = "can't decode status";
+      if (status == "wait pay") {
+        returnMsg = "User has paid";
+      }
+      return returnMsg;
+    },
+    needNextStepButton: function () {
+      if (this.detail.isDeleted) return false;
+      let items = ["wait pay"];
+      for (let item of items) {
+        if (this.detail.status == item) return true;
+      }
+      return false;
+    },
+    statusMapping: function (input) {
+      return statusMapping(input);
+    },
     openDetail: async function (index) {
       this.detailLoading = true;
       this.dialog = true;
-      this.detail = this.items[index];
+      this.detail = Object.assign({}, this.items[index]);
+      this.detail.index = index;
       this.detail.clothing = this.detail.clothing.split(",");
       for (let i = 0; i < this.detail.clothing.length; i++) {
         let result = this.detail.clothing[i].split("-");

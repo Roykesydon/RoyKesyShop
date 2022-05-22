@@ -20,6 +20,7 @@ def get_all_order():
     """
     recent_count = request.args.get("recent_count", default=150, type=int)
     token = request.headers.get("Authorization").replace("Bearer ", "")
+    return_json = {"success": 0, "msg": "", "data": None}
 
     """
     Check jwt token and get email of it
@@ -28,9 +29,6 @@ def get_all_order():
     if not token_parse_result["success"]:
         return_json["msg"] = token_parse_result["msg"]
         return return_json
-
-
-    return_json = {"success": 0, "msg": "", "data": None}
 
     with TransactionExecutor() as transaction_executor:
         success_flag, result = transaction_executor.query_sql(
@@ -157,6 +155,151 @@ def get_order_own_by_email():
 
     return_json["success"] = 1
     return_json["data"] = orders
+    return return_json
+
+
+@order.route("/", methods=["DELETE"])
+def delete_order():
+    """
+    Delete order
+    """
+    return_json = {"success": 0, "msg": "", "data": None}
+    data = request.get_json()
+    order_id = data["order_id"]
+
+    token = request.headers.get("Authorization").replace("Bearer ", "")
+
+    isAdmin = False
+    """
+    Check jwt token and get email of it
+    """
+    token_parse_result = check_jwt_token_and_get_info(token, check_is_admin=True)
+    if not token_parse_result["success"]:
+        return_json["msg"] = token_parse_result["msg"]
+        return return_json
+
+    with TransactionExecutor() as transaction_executor:
+        """
+        Get order info
+        """
+        success_flag, result = transaction_executor.query_sql(
+            "SELECT isDeleted from Orders WHERE _ID = %(order_id)s",
+            {"order_id": order_id},
+            fetch_one=True,
+        )
+        if not success_flag:
+            return_json["msg"] = "Can't get data"
+            return return_json
+
+        if result == None:
+            return_json["msg"] = "Can't find order"
+            return return_json
+
+        print(result)
+        if result == True:
+            return_json["msg"] = "Order has been deleted"
+            return return_json
+
+        """
+        Update order status
+        """
+        success_flag, result = transaction_executor.query_sql(
+            "UPDATE Orders SET isDeleted=1 WHERE _ID = %(order_id)s",
+            {"order_id": order_id},
+        )
+        if not success_flag:
+            return_json["msg"] = "Can't update database"
+            return return_json
+
+        if not transaction_executor.commit():
+            return_json["msg"] = "SQL Update error"
+            return return_json
+
+    return_json["success"] = 1
+    return return_json
+
+
+@order.route("/status", methods=["PUT"])
+def update_order_status():
+    """
+    Update order's status
+    """
+    return_json = {"success": 0, "msg": "", "data": None}
+    data = request.get_json()
+    order_id = data["order_id"]
+
+    token = request.headers.get("Authorization").replace("Bearer ", "")
+
+    isAdmin = False
+    """
+    Check jwt token and get email of it
+    """
+    token_parse_result = check_jwt_token_and_get_info(token)
+    if not token_parse_result["success"]:
+        return_json["msg"] = token_parse_result["msg"]
+        return return_json
+
+    if token_parse_result["info"]["isAdmin"] == "1":
+        isAdmin = True
+    email = token_parse_result["info"]["email"]
+
+    with TransactionExecutor() as transaction_executor:
+        """
+        Get order info
+        """
+        success_flag, result = transaction_executor.query_sql(
+            "SELECT email, status from Orders WHERE _ID = %(order_id)s",
+            {"order_id": order_id},
+            fetch_one=True,
+        )
+        if not success_flag:
+            return_json["msg"] = "Can't get data"
+            return return_json
+
+        if result == None:
+            return_json["msg"] = "Can't find order"
+            return return_json
+
+        order_email, order_status = result
+
+        """
+        Check authentication
+        """
+        if (not isAdmin) and (email != order_email):
+            return_json["msg"] = "Permission denied"
+            return return_json
+
+        all_status = ["wait pay", "delivering", "done"]
+
+        """
+        Check if the status can go to the next stage
+        """
+        if order_status not in all_status:
+            return_json["msg"] = "Status operation error"
+            return return_json
+
+        status_index = all_status.index(order_status)
+        if status_index == len(all_status) - 1:
+            return_json["msg"] = "Status can't go to next step"
+            return return_json
+
+        """
+        Update order status
+        """
+        success_flag, result = transaction_executor.query_sql(
+            "UPDATE Orders SET status=%(new_status)s WHERE _ID = %(order_id)s",
+            {"new_status": all_status[status_index + 1], "order_id": order_id},
+        )
+        if not success_flag:
+            return_json["msg"] = "Can't get data"
+            return return_json
+
+        if not transaction_executor.commit():
+            return_json["msg"] = "SQL Update error"
+            return return_json
+
+    return_json["success"] = 1
+    return_json["data"] = {"new_status": all_status[status_index + 1]}
     return return_json
 
 

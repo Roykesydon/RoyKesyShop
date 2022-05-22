@@ -42,7 +42,12 @@
         />
       </v-dialog>
 
-      <v-btn v-if="isLogin" text class="mx-1">
+      <v-btn
+        v-if="isLogin && !isAdmin"
+        text
+        class="mx-1"
+        @click="$router.push({ path: '/personal_order' })"
+      >
         <v-icon>mdi-account</v-icon>
       </v-btn>
 

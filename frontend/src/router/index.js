@@ -5,6 +5,7 @@ import ShoppingView from "@/views/ShoppingView.vue";
 import DashboardView from "@/views/DashboardView.vue";
 import ClothingDetailView from "@/views/ClothingDetailView.vue";
 import CartView from "@/views/CartView.vue";
+import PersonalOrderView from "@/views/PersonalOrderView.vue";
 
 Vue.use(VueRouter);
 
@@ -33,6 +34,11 @@ const routes = [
     path: "/cart",
     name: "cart",
     component: CartView,
+  },
+  {
+    path: "/personal_order",
+    name: "personal_order",
+    component: PersonalOrderView,
   },
 ];
 

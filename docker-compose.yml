@@ -27,10 +27,14 @@ services:
         ipv4_address: 10.5.0.3
     ports:
       - 3310:8080
-  web:
+  frontend:
     build:
       context: ./frontend
     restart: always
+    volumes:
+      - ./frontend/conf.d:/etc/nginx/conf.d
+    ports:
+      - 8088:80
     depends_on:
       - db
 
@@ -41,6 +45,7 @@ services:
       - ./nginx_conf:/etc/nginx/
     depends_on:
       - db
+      - frontend
     ports:
       - 80:80
 

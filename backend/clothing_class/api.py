@@ -15,11 +15,27 @@ clothing_class = Blueprint("clothing_class", __name__)
 @clothing_class.route("/", methods=["GET"])
 def get_all_classes():
     """
-    Get all parent clothing classes with their sub classes
+    Get all clothing parent class with their sub class
+    ---
+    tags:
+      - Clothing Class APIs
+    produces: application/json,
+    responses:
+      200:
+        description: return success flag ,error message and clothing class
+        schema:
+          type: "object"
+          properties:
+            data:
+              type: "object"
+            success:
+              type: "boolean"
+            msg:
+              type: "string"
     """
     return_json = {"success": 0, "msg": "", "data": None}
 
-    with TransactionExecutor() as transaction_executor:
+    with TransactionExecutor(read_only=True) as transaction_executor:
         success_flag, result = transaction_executor.query_sql(
             "SELECT class, subClass from ClothingClass",
             {},
@@ -44,13 +60,36 @@ def get_all_classes():
 @clothing_class.route("/<string:parent_class>", methods=["GET"])
 def get_clothing_with_parent_class(parent_class):
     """
-    Get clothing with chosen parent class.
-    Get a batch of clothing every time by the batch index.
+    Get a batch of clothing every time by the batch index with chosen parent class.
+    ---
+    tags:
+      - Clothing Class APIs
+    parameters:
+      - in: path
+        name: recent_count
+        type: int
+        required: false
+        default: 150
+    produces: application/json,
+    responses:
+      200:
+        description: return success flag ,error message and clothing with chosen parent class
+        schema:
+          type: "object"
+          properties:
+            data:
+              type: "array"
+              items:
+                type: object
+            success:
+              type: "boolean"
+            msg:
+              type: "string"
     """
     batch = request.args.get("batch", default=0, type=int)
     BATCH_SIZE = 20
     return_json = {"success": 0, "msg": "", "data": None}
-    with TransactionExecutor() as transaction_executor:
+    with TransactionExecutor(read_only=True) as transaction_executor:
         success_flag, result = transaction_executor.query_sql(
             "SELECT _ID, title, cost, imageExtension, sizes from Clothing WHERE isDeleted = false and class = %(parent_class)s order by _ID DESC limit %(BATCH_SIZE)s offset %(offset)s",
             {
@@ -71,13 +110,36 @@ def get_clothing_with_parent_class(parent_class):
 @clothing_class.route("/<string:parent_class>/<string:sub_class>", methods=["GET"])
 def get_clothing_with_sub_class(parent_class, sub_class):
     """
-    Get clothing with chosen parent class and sub class.
-    Get a batch of clothing every time by the batch index.
+    Get a batch of clothing every time by the batch index with chosen parent class and sub class.
+    ---
+    tags:
+      - Clothing Class APIs
+    parameters:
+      - in: path
+        name: recent_count
+        type: int
+        required: false
+        default: 150
+    produces: application/json,
+    responses:
+      200:
+        description: return success flag ,error message and clothing with chosen parent class and sub class
+        schema:
+          type: "object"
+          properties:
+            data:
+              type: "array"
+              items:
+                type: object
+            success:
+              type: "boolean"
+            msg:
+              type: "string"
     """
     batch = request.args.get("batch", default=0, type=int)
     BATCH_SIZE = 20
     return_json = {"success": 0, "msg": "", "data": None}
-    with TransactionExecutor() as transaction_executor:
+    with TransactionExecutor(read_only=True) as transaction_executor:
         success_flag, result = transaction_executor.query_sql(
             "SELECT _ID, title, cost, imageExtension, sizes from Clothing WHERE isDeleted = false and class = %(parent_class)s and subClass = %(sub_class)s order by _ID DESC limit %(BATCH_SIZE)s offset %(offset)s",
             {
@@ -98,6 +160,41 @@ def get_clothing_with_sub_class(parent_class, sub_class):
 
 @clothing_class.route("/", methods=["POST"])
 def create_clothing_class():
+    """
+    Create a new clothing class with information of parent class and sub class
+    ---
+    tags:
+      - Clothing Class APIs
+    produces: application/json,
+    parameters:
+      - in: header
+        name: Authorization
+        required: true
+        type: string
+        description: "Bearer  {JWT token}"
+      - name: body
+        in: body
+        required: false
+        schema:
+          required:
+            - parentClass
+            - subClass
+          properties:
+            parentClass:
+              type: string
+            subClass:
+              type: string
+    responses:
+      200:
+        description: return success flag ,error message
+        schema:
+          type: "object"
+          properties:
+            success:
+              type: "boolean"
+            msg:
+              type: "string"
+    """
     data = request.get_json()
 
     parent_class = data["parentClass"]

@@ -1,9 +1,9 @@
 # RoyKesyShop
 A project composed of nginx + vue + flask + mariadb, the project is for practice use.
 
-## How To Create Your Own Bot
+## How To Execute
 
-1. write config.yml
+1. write ./backend/config.yml
 
 1. write .env
     
@@ -18,12 +18,19 @@ A project composed of nginx + vue + flask + mariadb, the project is for practice
 2. ```bat
     docker-compose up -d
     ```
+
+3. When starting for the first time or want to clear the database, please execute the following command
+```
+cd ./backend
+pipenv install
+pipenv run python init_database.py
+```
 ## How to Shut down
 ```
 docker-compose down
 ```
 
-## Demo Pictures
+## Frontend Demo Pictures
 ### Home Page
 ![](./demo_pictures/home_light.png)
 ![](./demo_pictures/home_dark.png)
@@ -53,9 +60,19 @@ docker-compose down
 ![](./demo_pictures/dash_3_2.png)
 ![](./demo_pictures/dash_3_3.png)
 
+## Backend
+![](./demo_pictures/apidocs.png)
+get more information in http://localhost:5000/apidocs/
+
+## Port
+port | service
+-- | --
+3310 | Adminer
+5000 | backend
+80 | nginx
 
 ### TODO
-- mariadb replication
+- Set appropriate http status code
 
 
 ## Demo picture source

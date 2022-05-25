@@ -1,9 +1,9 @@
 <template>
-  <v-card class="ma-15" height="70vh">
+  <v-card class="ma-15">
     <v-toolbar flat color="primaryDark" dark>
       <v-toolbar-title>Admin Dashboard</v-toolbar-title>
     </v-toolbar>
-    <v-tabs vertical class="mt-10" color="secondary">
+    <v-tabs vertical class="mt-10" color="secondary" style="height: 70vh">
       <v-tab>
         <v-icon left> mdi-table </v-icon>
         Add clothing class

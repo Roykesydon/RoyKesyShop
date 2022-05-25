@@ -1,42 +1,74 @@
 version: '3.7'
 
 services:
-  db:
-    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
-    image: mariadb:10.3
+  mariadb-master:
+    image: docker.io/bitnami/mariadb:10.7
     restart: always
     volumes:
-      - ./database/mysql:/var/lib/mysql
+      - 'mariadb_master_data:/bitnami/mariadb'
     environment:
-      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
-      MARIADB_DATABASE: roykesyshop
-    ports:
-      - 3306:3306
-    networks:
-      backend-network:
-        ipv4_address: 10.5.0.2
+      - BITNAMI_DEBUG=true
+      - MARIADB_REPLICATION_MODE=master
+      - MARIADB_REPLICATION_USER=repl_user
+      - MARIADB_REPLICATION_PASSWORD=${MARIADB_REPLICATION_PASSWORD}
+      - MARIADB_DATABASE=roykesyshop
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=no
+      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+    healthcheck:
+      test: ['CMD', '/opt/bitnami/scripts/mariadb/healthcheck.sh']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+
+  mariadb-slave:
+    image: docker.io/bitnami/mariadb:10.7
+    restart: always
+    depends_on:
+      - mariadb-master
+    environment:
+      - BITNAMI_DEBUG=true
+      - MARIADB_REPLICATION_MODE=slave
+      - MARIADB_REPLICATION_USER=repl_user
+      - MARIADB_REPLICATION_PASSWORD=${MARIADB_REPLICATION_PASSWORD}
+      - MARIADB_DATABASE=roykesyshop
+      - MARIADB_MASTER_HOST=mariadb-master
+      - MARIADB_MASTER_PORT_NUMBER=3306
+      - MARIADB_MASTER_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=no
+    healthcheck:
+      test: ['CMD', '/opt/bitnami/scripts/mariadb/healthcheck.sh']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+     
   adminer:
     image: adminer:latest
     environment:
-      ADMINER_DEFAULT_SERVER: db
+      ADMINER_DEFAULT_SERVER: mariadb-master
     restart: always
     depends_on:
-      - db
-    networks:
-      backend-network:
-        ipv4_address: 10.5.0.3
+      - mariadb-master
     ports:
       - 3310:8080
+
+  backend:
+    build: ./backend
+    restart: always
+    ports:
+      - 5000:5000
+    depends_on:
+      - mariadb-slave
+
   frontend:
     build:
       context: ./frontend
     restart: always
     volumes:
       - ./frontend/conf.d:/etc/nginx/conf.d
-    ports:
-      - 8088:80
     depends_on:
-      - db
+      - backend
 
   nginx:
     image: nginx
@@ -44,16 +76,11 @@ services:
     volumes:
       - ./nginx_conf:/etc/nginx/
     depends_on:
-      - db
+      - backend
       - frontend
     ports:
       - 80:80
 
-
-networks:
-  backend-network:
-    driver: bridge
-    ipam:
-     config:
-       - subnet: 10.5.0.0/16
-         gateway: 10.5.0.1
+volumes:
+  mariadb_master_data:
+    driver: local

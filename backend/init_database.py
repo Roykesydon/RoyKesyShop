@@ -5,7 +5,7 @@ with open("config.yml", "r") as f:
     cfg = yaml.safe_load(f)
 
 connection = pymysql.connect(
-    host=str(cfg["db"]["host"]),
+    host=str(cfg["db"]["master_host"]),
     user=str(cfg["db"]["user"]),
     password=str(cfg["db"]["password"]),
     db=str(cfg["db"]["database"]),

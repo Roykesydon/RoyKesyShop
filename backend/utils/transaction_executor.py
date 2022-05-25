@@ -1,3 +1,4 @@
+import random
 from multiprocessing import connection
 
 import pymysql
@@ -9,8 +10,15 @@ from .config import get_config
 
 
 class TransactionExecutor:
+    def __init__(self, read_only=False):
+        if not read_only:
+            self.connection = connection_pool.master_connection_pool.connection()
+        else:
+            self.connection = random.choice(
+                connection_pool.slave_connection_pool_list
+            ).connection()
+
     def __enter__(self):
-        self.connection = connection_pool.connection_pool.connection()
         return self
 
     def __exit__(self, type, value, traceback):

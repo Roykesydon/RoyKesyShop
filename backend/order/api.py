@@ -16,7 +16,37 @@ order = Blueprint("order", __name__)
 @order.route("/", methods=["GET"])
 def get_all_order():
     """
-    Admin can use this API to get recent record of order information
+    Get batch of all order in database
+    Only can be used by admin
+    ---
+    tags:
+      - Order APIs
+    produces: application/json,
+    parameters:
+      - in: header
+        name: Authorization
+        required: true
+        type: string
+        description: "Bearer  {JWT token}"
+      - in: path
+        name: recent_count
+        type: int
+        required: false
+        default: 150
+    responses:
+      200:
+        description: return success flag ,error message and orders
+        schema:
+          type: "object"
+          properties:
+            data:
+              type: "array"
+              items:
+                type: object
+            success:
+              type: "boolean"
+            msg:
+              type: "string"
     """
     recent_count = request.args.get("recent_count", default=150, type=int)
     token = request.headers.get("Authorization").replace("Bearer ", "")
@@ -30,7 +60,7 @@ def get_all_order():
         return_json["msg"] = token_parse_result["msg"]
         return return_json
 
-    with TransactionExecutor() as transaction_executor:
+    with TransactionExecutor(read_only=True) as transaction_executor:
         success_flag, result = transaction_executor.query_sql(
             "SELECT _ID, cost, name, address, phone, status, isDeleted, clothingID, size, count FROM \
                 (SELECT _ID, email, cost, name, address, phone, status, isDeleted FROM Orders order by _ID DESC limit %(recent_count)s) as TopOrders INNER JOIN OrderClothingDetail\
@@ -75,7 +105,44 @@ def get_all_order():
 @order.route("/with_email", methods=["POST"])
 def get_order_own_by_email():
     """
-    Get particular user's order information
+    Get orders own by user with specific email.
+    Only can be used by admin and owner
+    ---
+    tags:
+      - Order APIs
+    produces: application/json,
+    parameters:
+      - in: header
+        name: Authorization
+        required: true
+        type: string
+        description: "Bearer  {JWT token}"
+      - name: body
+        in: body
+        required: false
+        schema:
+          required:
+            - email
+          properties:
+            email:
+              type: string
+            recentCount:
+              type: number
+              default: 100
+    responses:
+      200:
+        description: return success flag ,error message and orders
+        schema:
+          type: "object"
+          properties:
+            data:
+              type: "array"
+              items:
+                type: object
+            success:
+              type: "boolean"
+            msg:
+              type: "string"
     """
     data = request.get_json()
 
@@ -114,7 +181,7 @@ def get_order_own_by_email():
         return_json["msg"] = errors[0]
         return return_json
 
-    with TransactionExecutor() as transaction_executor:
+    with TransactionExecutor(read_only=True) as transaction_executor:
         success_flag, result = transaction_executor.query_sql(
             "SELECT _ID, cost, name, address, phone, status, isDeleted, clothingID, size, count FROM \
                 (SELECT _ID, email, cost, name, address, phone, status, isDeleted FROM Orders WHERE email = %(email)s order by _ID DESC limit %(recent_count)s) as TopOrders INNER JOIN OrderClothingDetail\
@@ -162,8 +229,38 @@ def get_order_own_by_email():
 def delete_order():
     """
     Delete order
+    Only can be used by admin
+    ---
+    tags:
+      - Order APIs
+    produces: application/json,
+    parameters:
+      - in: header
+        name: Authorization
+        required: true
+        type: string
+        description: "Bearer  {JWT token}"
+      - name: body
+        in: body
+        required: false
+        schema:
+          required:
+            - order_id
+          properties:
+            order_id:
+              type: number
+    responses:
+      200:
+        description: return success flag ,error message
+        schema:
+          type: "object"
+          properties:
+            success:
+              type: "boolean"
+            msg:
+              type: "string"
     """
-    return_json = {"success": 0, "msg": "", "data": None}
+    return_json = {"success": 0, "msg": ""}
     data = request.get_json()
     order_id = data["order_id"]
 
@@ -195,8 +292,7 @@ def delete_order():
             return_json["msg"] = "Can't find order"
             return return_json
 
-        print(result)
-        if result == True:
+        if result[0] == True:
             return_json["msg"] = "Order has been deleted"
             return return_json
 
@@ -223,6 +319,38 @@ def delete_order():
 def update_order_status():
     """
     Update order's status
+    Only can be used by admin and order's owner
+    ---
+    tags:
+      - Order APIs
+    produces: application/json,
+    parameters:
+      - in: header
+        name: Authorization
+        required: true
+        type: string
+        description: "Bearer  {JWT token}"
+      - name: body
+        in: body
+        required: false
+        schema:
+          required:
+            - order_id
+          properties:
+            order_id:
+              type: number
+    responses:
+      200:
+        description: return success flag ,error message, order's new status
+        schema:
+          type: "object"
+          properties:
+            success:
+              type: "boolean"
+            msg:
+              type: "string"
+            data:
+              type: "object"
     """
     return_json = {"success": 0, "msg": "", "data": None}
     data = request.get_json()
@@ -305,6 +433,50 @@ def update_order_status():
 
 @order.route("/", methods=["POST"])
 def create_order():
+    """
+    Create new order
+    ---
+    tags:
+      - Order APIs
+    produces: application/json,
+    parameters:
+      - in: header
+        name: Authorization
+        required: true
+        type: string
+        description: "Bearer  {JWT token}"
+      - name: body
+        in: body
+        required: false
+        schema:
+          required:
+            - name
+            - address
+            - phoneNumber
+            - clothing
+            - email
+          properties:
+            name:
+              type: string
+            address:
+              type: string
+            phoneNumber:
+              type: string
+            clothing:
+              type: string
+            email:
+              type: string
+    responses:
+      200:
+        description: return success flag ,error message and orders
+        schema:
+          type: "object"
+          properties:
+            success:
+              type: "boolean"
+            msg:
+              type: "string"
+    """
     data = request.get_json()
     token = request.headers.get("Authorization").replace("Bearer ", "")
 

@@ -19,6 +19,38 @@ def index():
 
 @user.route("/register", methods=["POST"])
 def register():
+    """
+    Create a new user account
+    ---
+    tags:
+      - User APIs
+    produces: application/json,
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          required:
+            - email
+            - password
+          properties:
+            email:
+              type: string
+            password:
+              type: string
+    responses:
+      200:
+        description: return success flag ,error message and JWT token
+        schema:
+          type: "object"
+          properties:
+            msg:
+              type: "string"
+            success:
+              type: "boolean"
+            token:
+              type: "string"
+    """
     data = request.get_json()
 
     email = data["email"]
@@ -90,6 +122,38 @@ def register():
 
 @user.route("/login", methods=["POST"])
 def login():
+    """
+    Login existed account
+    ---
+    tags:
+      - User APIs
+    produces: application/json,
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          required:
+            - email
+            - password
+          properties:
+            email:
+              type: string
+            password:
+              type: string
+    responses:
+      200:
+        description: return success flag ,error message and JWT token
+        schema:
+          type: "object"
+          properties:
+            msg:
+              type: "string"
+            success:
+              type: "boolean"
+            token:
+              type: "string"
+    """
     data = request.get_json()
     email = data["email"]
     password = data["password"]
@@ -106,7 +170,7 @@ def login():
         return_json["msg"] = errors[0]
         return return_json
 
-    with TransactionExecutor() as transaction_executor:
+    with TransactionExecutor(read_only=True) as transaction_executor:
         """
         Check whether email exists in database and get salt, password  and isAdmin
         """

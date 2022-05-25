@@ -20,10 +20,37 @@ Get a batch of clothing every time by the batch index.
 
 @clothing.route("/", methods=["GET"])
 def index():
+    """
+    Get batch of all clothing in database
+    ---
+    tags:
+      - Clothing APIs
+    produces: application/json,
+    parameters:
+      - in: path
+        name: batch
+        type: int
+        required: false
+        default: 0
+    responses:
+      200:
+        description: return success flag ,error message and clothing
+        schema:
+          type: "object"
+          properties:
+            data:
+              type: "array"
+              items:
+                type: object
+            success:
+              type: "boolean"
+            msg:
+              type: "string"
+    """
     batch = request.args.get("batch", default=0, type=int)
     BATCH_SIZE = 20
     return_json = {"success": 0, "msg": "", "data": None}
-    with TransactionExecutor() as transaction_executor:
+    with TransactionExecutor(read_only=True) as transaction_executor:
         success_flag, result = transaction_executor.query_sql(
             "SELECT _ID, title, cost, imageExtension, sizes from Clothing WHERE isDeleted = false order by _ID DESC limit %(BATCH_SIZE)s offset %(offset)s",
             {"BATCH_SIZE": BATCH_SIZE, "offset": batch * BATCH_SIZE},
@@ -39,8 +66,27 @@ def index():
 
 @clothing.route("/<int:id>", methods=["GET"])
 def get_clothing_by_id(id):
+    """
+    Get clothing's detail by specific id
+    ---
+    tags:
+      - Clothing APIs
+    produces: application/json,
+    responses:
+      200:
+        description: return success flag ,error message and clothing's detail
+        schema:
+          type: "object"
+          properties:
+            data:
+              type: "object"
+            success:
+              type: "boolean"
+            msg:
+              type: "string"
+    """
     return_json = {"success": 0, "msg": "", "data": None}
-    with TransactionExecutor() as transaction_executor:
+    with TransactionExecutor(read_only=True) as transaction_executor:
         success_flag, result = transaction_executor.query_sql(
             "SELECT _ID, title, cost, imageExtension, sizes, class, subClass, description from Clothing WHERE isDeleted = false and _ID = %(clothing_id)s",
             {"clothing_id": id},
@@ -58,13 +104,40 @@ def get_clothing_by_id(id):
 @clothing.route("/search/<string:keyword>", methods=["GET"])
 def search_by_keyword(keyword):
     """
+    Get clothing that has keyword in its name
+    ---
+    tags:
+      - Clothing APIs
+    produces: application/json,
+    parameters:
+      - in: path
+        name: batch
+        type: int
+        required: false
+        default: 0
+    responses:
+      200:
+        description: return success flag ,error message and clothing's detail
+        schema:
+          type: "object"
+          properties:
+            data:
+              type: "array"
+              items:
+                type: object
+            success:
+              type: "boolean"
+            msg:
+              type: "string"
+    """
+    """
     TODO: multiple keywords
     """
     batch = request.args.get("batch", default=0, type=int)
     BATCH_SIZE = 20
 
     return_json = {"success": 0, "msg": "", "data": None}
-    with TransactionExecutor() as transaction_executor:
+    with TransactionExecutor(read_only=True) as transaction_executor:
         success_flag, result = transaction_executor.query_sql(
             "SELECT _ID, title, cost, imageExtension, sizes from Clothing WHERE isDeleted = false and title LIKE CONCAT('%%', %(keyword)s, '%%') order by _ID DESC limit %(BATCH_SIZE)s offset %(offset)s",
             {
@@ -84,6 +157,16 @@ def search_by_keyword(keyword):
 
 @clothing.route("/image/<string:filename>", methods=["GET"])
 def get_clothing_with_id(filename):
+    """
+    Get image by url
+    ---
+    tags:
+      - Clothing APIs
+    produces: application/json,
+    responses:
+      200:
+        description: return image or error message
+    """
     if Path(f"./uploadFiles/clothingImages/{filename}").is_file():
         return send_from_directory("./uploadFiles/clothingImages/", f"{filename}")
     return "Can't find file"
@@ -91,6 +174,57 @@ def get_clothing_with_id(filename):
 
 @clothing.route("/", methods=["POST"])
 def create_clothing():
+    """
+    Create new clothing
+    Only can be used by admin
+    ---
+    tags:
+      - Clothing APIs
+    produces: application/json,
+    parameters:
+      - in: header
+        name: Authorization
+        required: true
+        type: string
+        description: "Bearer  {JWT token}"
+      - name: body
+        in: body
+        required: false
+        schema:
+          required:
+            - title
+            - cost
+            - description
+            - selectedSize
+            - selectParentClass
+            - selectSubClass
+            - image
+          properties:
+            title:
+              type: string
+            cost:
+              type: string
+            description:
+              type: string
+            selectedSize:
+              type: string
+            selectParentClass:
+              type: string
+            selectSubClass:
+              type: string
+            image:
+              type: string
+    responses:
+      200:
+        description: return success flag ,error message
+        schema:
+          type: "object"
+          properties:
+            success:
+              type: "boolean"
+            msg:
+              type: "string"
+    """
     data = request.get_json()
 
     title = data["title"]

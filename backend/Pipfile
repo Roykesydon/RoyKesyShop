@@ -12,6 +12,9 @@ black = "*"
 pyjwt = "*"
 isort = "*"
 dbutils = "*"
+gunicorn = "*"
+waitress = "*"
+flasgger = "*"
 
 [dev-packages]
 

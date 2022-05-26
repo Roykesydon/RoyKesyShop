@@ -7,13 +7,6 @@ A project composed of nginx + vue + flask + mariadb, the project is for practice
 
 1. write .env
     
-1. If you're not using docker with wsl2, you might need to change 
-    ```
-    upstream backend{
-        server host.docker.internal:5000;
-    }
-    ```
-    in nginx_conf/conf.d/default.conf
 
 2. ```bat
     docker-compose up -d
